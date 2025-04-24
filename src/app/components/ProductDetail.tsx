@@ -3,7 +3,7 @@
 import { FC, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Navbar from "../components/Navbar";
+import Navbar from "./Navbar";
 import { addToCart } from "../utils/cart";
 import { Product } from "../lib/types/Product";
 

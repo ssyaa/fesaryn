@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Product } from "../../lib/types/Product";
 import { useParams } from "next/navigation";
-import ProductDetail from "@/app/ProductDetail/page";
+import ProductDetail from "@/app/components/ProductDetail";
 import RelatedProducts from "../../components/RelatedProducts";
 
 const ProductPage = () => {
