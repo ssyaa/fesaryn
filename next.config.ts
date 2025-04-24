@@ -1,9 +1,10 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  turbopack: {},
+  experimental: {
+    appDir: true,  // Enable the app directory
+  },
 };
 
 module.exports = nextConfig;

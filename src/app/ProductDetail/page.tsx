@@ -12,37 +12,32 @@ interface ProductDetailProps {
     product: Product | null;
 }
 
-// Define the ProductDetail component
+// ProductDetail page component
 const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
     const [selectedImage, setSelectedImage] = useState(0);
-    const [buttonText, setButtonText] = useState("Order"); // Initial button text is "Order"
-    const [isLoading, setIsLoading] = useState(false); // Loading state
+    const [buttonText, setButtonText] = useState("Order");
+    const [isLoading, setIsLoading] = useState(false);
 
-    // If no product, show loading
     if (!product) return <div>Loading...</div>;
 
     const handleOrder = () => {
-        if (isLoading) return; // Prevent multiple clicks
+        if (isLoading) return;
 
-        setIsLoading(true); // Start loading
-        setButtonText("Add to Cart"); // Change button text to "Add to Cart"
-        
-        addToCart(product); // ✅ Add to cart
+        setIsLoading(true);
+        setButtonText("Add to Cart");
+        addToCart(product);
 
-        // Change button to "Success" after adding to cart
         setButtonText("Success");
-        
-        // Reset button text after a delay
+
         setTimeout(() => {
             setButtonText("Order");
-            setIsLoading(false); // Stop loading
-        }, 2000); // Change text after 2 seconds
+            setIsLoading(false);
+        }, 2000);
     };
 
     return (
         <>
             <Navbar />
-
             <div className="flex flex-col md:flex-row min-h-screen bg-white px-6 md:px-16 pt-28 text-black">
                 {/* Back and Image section */}
                 <div className="flex flex-col md:w-1/2">
