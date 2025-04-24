@@ -1,3 +1,5 @@
+"use client" 
+
 import React, { useState } from "react";
 import Pagination from "../components/Pagination";
 import { Product } from "../lib/types/Product";
