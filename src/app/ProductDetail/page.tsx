@@ -4,7 +4,7 @@ import { FC, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "../components/Navbar";
-import { addToCart } from "../utils/cart"; // ✅ Ensure this path is correct
+import { addToCart } from "../utils/cart";
 import { Product } from "../lib/types/Product";
 
 // Define the props interface
@@ -18,7 +18,7 @@ const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
     const [buttonText, setButtonText] = useState("Order"); // Initial button text is "Order"
     const [isLoading, setIsLoading] = useState(false); // Loading state
 
-    // Show loading state if the product is not provided
+    // If no product, show loading
     if (!product) return <div>Loading...</div>;
 
     const handleOrder = () => {
@@ -61,7 +61,7 @@ const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
                                 }
                             `}</style>
 
-                            {product.images.map((img, idx) => (
+                            {product?.images.map((img, idx) => (
                                 <Image
                                     key={idx}
                                     src={img}
@@ -78,7 +78,7 @@ const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
 
                         <div className="flex justify-center items-center w-full">
                             <Image
-                                src={product.images[selectedImage]}
+                                src={product?.images[selectedImage]} // Safely access product.images
                                 alt="Main product"
                                 width={600}
                                 height={800}
