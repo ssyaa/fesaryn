@@ -1,8 +1,9 @@
 import { products } from "../../../lib/data/products";
 import { NextResponse } from "next/server";
 
+// Ensure the correct type for params
 export async function GET(req: Request, { params }: { params: { productId: string } }) {
-  // The `params` argument should have the correct type.
+  // Access productId from params and ensure it's being compared correctly
   const product = products.find((p) => p.id === params.productId);
 
   if (!product) {
