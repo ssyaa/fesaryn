@@ -1,7 +1,12 @@
 import { products } from "../../../lib/data/products";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { productId: string } }) {
+// Define a custom type for the params
+interface Params {
+  productId: string;
+}
+
+export async function GET(req: Request, { params }: { params: Params }) {
   const product = products.find((p) => p.id === params.productId);
 
   if (!product) {
