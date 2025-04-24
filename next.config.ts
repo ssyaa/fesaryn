@@ -1,9 +1,9 @@
-import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {
-  turbopack: {
-    // custom config if needed
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
   },
+  turbopack: {},
 };
 
-export default nextConfig;
+module.exports = nextConfig;

@@ -13,7 +13,6 @@ import { Product } from "../app/lib/types/Product";
 
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchProducts = async () => {

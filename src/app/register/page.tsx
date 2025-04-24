@@ -23,13 +23,13 @@ export default function Register() {
         }
 
         try {
-            // Mengirim data registrasi ke API backend Laravel
-            const response = await axios.post("/api/register", {
+            await axios.post("/api/register", {
                 name,
                 username,
                 email,
                 password,
             });
+  
 
             // Jika registrasi berhasil, simpan status login
             localStorage.setItem("isLoggedIn", "true");

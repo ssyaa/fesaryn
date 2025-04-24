@@ -35,7 +35,7 @@ export default function AvailableProducts({ products }: AvailableProductsProps) 
       <h2 className="text-2xl font-semibold mb-10">Available</h2>
       {availableProducts.length === 0 ? (
         <p className="text-gray-500">
-          No products available yet, but they're coming ☺️🙌🏻
+        No products available yet, but they&apos;re coming ☺️🙌🏻
         </p>
       ) : (
         <>
