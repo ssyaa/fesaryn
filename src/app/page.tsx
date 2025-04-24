@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ProductDetail from "./ProductDetail/page"; // Correct import path
+import ProductDetail from "./ProductDetail/page";
 import { CartProvider } from "../context/Contextcart";
 import { AuthProvider } from "../context/Authcontext";
 import Navbar from "../app/components/Navbar";
