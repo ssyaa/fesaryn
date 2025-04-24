@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ProductDetail from "./ProductDetail/page"; // Correct import path
 import { CartProvider } from "../context/Contextcart";
 import { AuthProvider } from "../context/Authcontext";
 import Navbar from "../app/components/Navbar";
@@ -41,6 +42,10 @@ export default function HomePage() {
           <Categories />
           <AvailableProducts products={availableProducts} />
           <RestockedSection products={restockedProducts} />
+          
+          {/* Add ProductDetail to render the first product */}
+          {products.length > 0 && <ProductDetail product={products[0]} />}
+
           <Footer />
         </>
       </CartProvider>
