@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { Product } from "../lib/types/Product";
-import { useRouter } from "next/navigation"; // Import useRouter untuk melakukan redirect
+import { useRouter } from "next/navigation";
 
 interface CheckoutPanelProps {
     isOpen: boolean;
@@ -12,21 +12,7 @@ interface CheckoutPanelProps {
 
 const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
     const [cartItems, setCartItems] = useState<Product[]>([]);
-    const router = useRouter(); // Inisialisasi useRouter untuk redirect
-    const [isRedirected, setIsRedirected] = useState(false); // Tambahkan state untuk track redirect
-
-    // Pengecekan status login
-    useEffect(() => {
-        // Pastikan pengecekan hanya dilakukan sekali
-        if (!isRedirected) {
-            const isLoggedIn = localStorage.getItem("isLoggedIn") === "true"; // Cek status login (misalnya dengan localStorage)
-
-            if (!isLoggedIn) {
-                setIsRedirected(true); // Tandai sudah di-redirect
-                router.push("/status"); // Arahkan ke halaman /status jika belum login
-            }
-        }
-    }, [isRedirected, router]); // Tambahkan isRedirected agar hanya terjadi sekali
+    const router = useRouter();
 
     useEffect(() => {
         if (isOpen) {
@@ -40,6 +26,16 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
     const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
         if (e.target === e.currentTarget) {
             onClose();
+        }
+    };
+
+    const handleProceedToPayment = () => {
+        const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+        if (!isLoggedIn) {
+            router.push("/status"); // Arahkan ke halaman status jika belum login
+        } else {
+            router.push("/payment"); // Ganti ke halaman pembayaran kamu
         }
     };
 
@@ -63,7 +59,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
                 animate={{ x: isOpen ? 0 : "100%" }}
                 transition={{ type: "tween", duration: 0.4 }}
                 className="fixed top-0 right-0 h-full w-[400px] bg-white p-6 z-50 shadow-lg overflow-y-auto"
-                style={{ transform: "translateX(100%)" }} // Awalnya di luar layar
+                style={{ transform: "translateX(100%)" }}
             >
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
@@ -139,7 +135,10 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Pay Button */}
-                <button className="mt-6 w-full bg-black text-white py-3 rounded hover:bg-gray-800 transition">
+                <button
+                    onClick={handleProceedToPayment}
+                    className="mt-6 w-full bg-black text-white py-3 rounded hover:bg-gray-800 transition"
+                >
                     Proceed to Payment
                 </button>
             </motion.div>
