@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import * as React from "react"
+import * as React from "react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function Register() {
     const [name, setName] = useState("");
@@ -29,16 +31,11 @@ export default function Register() {
                 email,
                 password,
             });
-  
 
-            // Jika registrasi berhasil, simpan status login
             localStorage.setItem("isLoggedIn", "true");
-
-            // Redirect ke halaman user
             router.push("/user");
 
         } catch (error) {
-            // Menangani error jika terjadi
             if (axios.isAxiosError(error)) {
                 setError("Terjadi kesalahan saat registrasi. Periksa kembali data yang dimasukkan.");
             } else {
@@ -48,65 +45,106 @@ export default function Register() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-white">
-            <div className="bg-white shadow-lg rounded-lg p-8 w-96">
-                <h2 className="text-2xl font-bold text-center mb-4">Register</h2>
-                <form onSubmit={handleRegister}>
-                    <div className="mb-4">
-                        <label className="block text-gray-700">Nama</label>
-                        <input 
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Masukkan nama"
+        <div
+            className="relative flex min-h-screen bg-cover bg-center"
+            style={{ backgroundImage: "url('/images/beranda.jpg')" }}
+        >
+            {/* Overlay blur */}
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-0" />
+
+            {/* Layout kiri kanan */}
+            <div className="relative z-10 flex flex-1">
+                {/* Kotak kiri */}
+                <div className="w-1/2 flex items-center justify-center bg-white/40 backdrop-blur-md text-white p-8">
+                    <h1 className="text-3xl font-semibold text-center tracking-widest">
+                        Choose ur style <br />
+                        with <span className="font-bold">@sarynthelebel</span>
+                    </h1>
+                </div>
+
+                {/* Kotak kanan */}
+                <div className="w-1/2 flex items-center justify-center p-2">
+                    <div className="bg-white shadow-lg rounded-lg p-10 h-[700px] w-[500px]">
+                        <Image
+                            src="/sarynlogo.png"
+                            alt="Saryn Logo"
+                            width={64}
+                            height={64}
+                            className="mx-auto mb-4"
                         />
+                        <h2 className="text-3xl font-bold text-left mb-3 mt-6">Register</h2>
+                        <form onSubmit={handleRegister}>
+                            <div className="mb-2">
+                                <label className="block text-gray-700 tracking-wide">Nama</label>
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-grey-300"
+                                    placeholder="Insert your name.."
+                                    required
+                                />
+                            </div>
+                            <div className="mb-2">
+                                <label className="block text-gray-700 tracking-wide">Username</label>
+                                <input
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-grey-300"
+                                    placeholder="Create your username.."
+                                    required
+                                />
+                            </div>
+                            <div className="mb-2">
+                                <label className="block text-gray-700 tracking-wide">Email</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-grey-300"
+                                    placeholder="Insert your email.."
+                                    required
+                                />
+                            </div>
+                            <div className="mb-2">
+                                <label className="block text-gray-700 tracking-wide">Password</label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-grey-300"
+                                    placeholder="Insert your password.."
+                                    required
+                                />
+                            </div>
+                            <div className="mb-2">
+                                <label className="block text-gray-700 tracking-wide">Konfirmasi Password</label>
+                                <input
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-grey-300"
+                                    placeholder="Repeat your password.."
+                                    required
+                                />
+                                {error && <p className="text-red-500 text-sm">{error}</p>}
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full bg-gray-900 text-white py-2 rounded-md hover:bg-gray-800"
+                            >
+                                Register
+                            </button>
+                        </form>
+                        <p className="mt-4 text-center text-sm text-gray-600">
+                            Already have an account?{" "}
+                            <Link href="/login" className="text-gray-900 hover:underline font-medium">
+                                Login here!
+                            </Link>
+                        </p>
                     </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700">Username</label>
-                        <input 
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Masukkan username"
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700">Email</label>
-                        <input 
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Masukkan email"
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700">Password</label>
-                        <input 
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Masukkan password"
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700">Konfirmasi Password</label>
-                        <input 
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Ulangi password"
-                        />
-                        {error && <p className="text-red-500 text-sm">{error}</p>}
-                    </div>
-                    <button type="submit" className="w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600">
-                        Register
-                    </button>
-                </form>
+                </div>
             </div>
         </div>
     );
