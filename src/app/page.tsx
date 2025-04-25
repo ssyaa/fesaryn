@@ -7,7 +7,7 @@ import Navbar from "../app/components/Navbar";
 import HeroSection from "../app/components/HeroSection";
 import Categories from "../app/components/Categories";
 import AvailableProducts from "../app/components/AvailableProducts";
-import RestockedSection from "../app/RestockedSection/page";
+import RestockedSection from "../app/components/RestockedSection";
 import Footer from "../app/components/Footer";
 import { Product } from "../app/lib/types/Product";
 
