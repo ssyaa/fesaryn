@@ -20,7 +20,7 @@ export default function Login() {
                 const response = await axios.get("http://localhost:8000/api/login");
                 if (response.status === 200) {
                     // Jika sudah login, redirect ke halaman user
-                    router.push("/user");
+                    router.push("/home");
                 }
             } catch (err) {
                 console.log("User belum login atau terjadi kesalahan.", err);
@@ -47,7 +47,7 @@ export default function Login() {
 
             if (loginResponse.status === 200) {
                 // Setelah login sukses, redirect ke halaman user
-                router.push("/user");
+                router.push("/home");
             }
         } catch (err: any) {
             // Menangani error jika login gagal

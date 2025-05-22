@@ -1,49 +1,41 @@
+// context/Authcontext.tsx
 "use client";
+import { createContext, useContext, useState, ReactNode } from "react";
 
-import { useEffect, useState } from "react";
-import { CartProvider } from "../context/Contextcart";
-import { AuthProvider } from "../context/Authcontext";
-import Navbar from "../app/components/Navbar";
-import HeroSection from "../app/components/HeroSection";
-import Categories from "../app/components/Categories";
-import AvailableProducts from "../app/components/AvailableProducts";
-import RestockedSection from "../app/components/RestockedSection";
-import Footer from "../app/components/Footer";
-import { Product } from "../app/lib/types/Product";
+// Buat tipe user (sesuaikan dengan data user dari backend Laravel kamu)
+type User = {
+  id: number;
+  name: string;
+  email: string;
+  // tambahkan field lain kalau perlu
+};
 
-export default function HomePage() {
-  const [products, setProducts] = useState<Product[]>([]);
+// Tipe untuk AuthContext
+type AuthContextType = {
+  user: User | null;
+  setUser: (user: User | null) => void;
+  logout: () => void;
+};
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch("/api/products");
-        if (!res.ok) throw new Error("Failed to fetch products");
-        const data: Product[] = await res.json();
-        setProducts(data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-    fetchProducts();
-  }, []);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
 
-  const availableProducts = products.filter(p => p.stock > 0);
-  const restockedProducts = products.filter(p => p.stock === 0);
+  const logout = () => {
+    setUser(null);
+  };
 
   return (
-    <AuthProvider>
-      <CartProvider>
-        <>
-          <Navbar />
-          <HeroSection />
-          <Categories />
-          <AvailableProducts products={availableProducts} />
-          <RestockedSection products={restockedProducts} />
-          <Footer />
-        </>
-      </CartProvider>
-    </AuthProvider>
+    <AuthContext.Provider value={{ user, setUser, logout }}>
+      {children}
+    </AuthContext.Provider>
   );
-}
+};
+
+// Hook untuk menggunakan context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
+  return context;
+};
