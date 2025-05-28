@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { Product } from "../lib/types/Product";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 interface CheckoutPanelProps {
     isOpen: boolean;
@@ -13,6 +14,7 @@ interface CheckoutPanelProps {
 const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
     const [cartItems, setCartItems] = useState<Product[]>([]);
     const router = useRouter();
+    const [loginMessage, setLoginMessage] = useState("");
 
     useEffect(() => {
         if (isOpen) {
@@ -29,13 +31,35 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
         }
     };
 
-    const handleProceedToPayment = () => {
+    const handleProceedToPayment = async () => {
         const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
         if (!isLoggedIn) {
-            router.push("/status"); // Arahkan ke halaman status jika belum login
-        } else {
-            router.push("/payment"); // Ganti ke halaman pembayaran kamu
+            setLoginMessage("Silahkan login terlebih dahulu");
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem("user-token");
+            const response = await axios.get("http://localhost:8000/api/user", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const userData = response.data.user || response.data;
+
+            // Contoh validasi data lengkap (sesuaikan field yang wajib diisi)
+            const isComplete = userData.name && userData.address && userData.phone;
+
+            if (isComplete) {
+                router.push("/pesan");
+            } else {
+                router.push("/user");
+            }
+        } catch (error) {
+            // Jika gagal ambil data user, arahkan ke halaman user supaya bisa update data
+            router.push("/user");
         }
     };
 

@@ -5,6 +5,7 @@ import Pagination from "./Pagination";
 import { Product } from "../lib/types/Product";
 import Image from "next/image";
 
+
 interface RestockedSectionProps {
   products: Product[];
 }

@@ -1,41 +1,37 @@
-// context/Authcontext.tsx
 "use client";
-import { createContext, useContext, useState, ReactNode } from "react";
 
-// Buat tipe user (sesuaikan dengan data user dari backend Laravel kamu)
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  // tambahkan field lain kalau perlu
-};
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-// Tipe untuk AuthContext
-type AuthContextType = {
-  user: User | null;
-  setUser: (user: User | null) => void;
-  logout: () => void;
-};
+export default function HomePageRedirect() {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+  useEffect(() => {
+  const checkToken = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-
-  const logout = () => {
-    setUser(null);
+    try {
+      const res = await fetch("/api/auth/validate-token", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        router.replace("/home");
+      } else {
+        localStorage.removeItem("token");
+        router.replace("/login");
+      }
+    } catch (error) {
+      localStorage.removeItem("token");
+      router.replace("/login");
+    }
   };
 
-  return (
-    <AuthContext.Provider value={{ user, setUser, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-// Hook untuk menggunakan context
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within an AuthProvider");
-  return context;
-};
+  checkToken();
+}, [])};

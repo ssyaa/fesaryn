@@ -15,7 +15,10 @@ const ProductPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("/api/products");
+        const res = await fetch("http://localhost:8000/api/product", {
+          credentials: "include",
+        });
+
         if (!res.ok) throw new Error("Failed to fetch products");
 
         const data: Product[] = await res.json();
@@ -47,7 +50,7 @@ const ProductPage = () => {
             id: p.id,
             name: p.name,
             price: p.price,
-            imageUrl: p.images?.[0] || "",
+            imageUrl: p.images?.[0] || "", // Pastikan Laravel API mengirim 'images' array jika dipakai
           }))}
         currentProductId={product.id}
       />

@@ -9,7 +9,6 @@ import Link from "next/link";
 
 export default function Register() {
     const [name, setName] = useState("");
-    const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -27,7 +26,6 @@ export default function Register() {
         try {
             await axios.post("/api/register", {
                 name,
-                username,
                 email,
                 password,
             });
@@ -82,17 +80,6 @@ export default function Register() {
                                     onChange={(e) => setName(e.target.value)}
                                     className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-grey-300"
                                     placeholder="Insert your name.."
-                                    required
-                                />
-                            </div>
-                            <div className="mb-2">
-                                <label className="block text-gray-700 tracking-wide">Username</label>
-                                <input
-                                    type="text"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-grey-300"
-                                    placeholder="Create your username.."
                                     required
                                 />
                             </div>

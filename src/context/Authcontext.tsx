@@ -1,57 +1,46 @@
-// src/context/AuthContext.tsx
-import React, { createContext, useContext, useState, ReactNode } from "react";
+"use client";
 
-// Tipe data untuk user
-interface User {
-    name: string;
-    username: string;
-    email: string;
-}
+import React, { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
 
-// Tipe data untuk context
 interface AuthContextType {
     isLoggedIn: boolean;
-    userData: User | null;
-    login: (user: User) => void;
-    logout: () => void;
+    setLoggedIn: (value: boolean) => void;
 }
 
-// Membuat context default (null atau bisa disesuaikan)
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+    isLoggedIn: false,
+    setLoggedIn: () => {},
+    });
 
-// Membuat provider
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-    const [userData, setUserData] = useState<User | null>(null);
+    export function AuthProvider({ children }: { children: React.ReactNode }) {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    // Login function
-    const login = (user: User) => {
-        setIsLoggedIn(true);
-        setUserData(user);
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("userData", JSON.stringify(user));
-    };
+    useEffect(() => {
+        // Cek login status saat Layout dimuat
+        const checkLoginStatus = async () => {
+        try {
+            const response = await axios.get("http://localhost:8000/api/login", { withCredentials: true });
+            if (response.status === 200) {
+            setIsLoggedIn(true);
+            } else {
+            setIsLoggedIn(false);
+            }
+        } catch {
+            setIsLoggedIn(false);
+        }
+        };
 
-    // Logout function
-    const logout = () => {
-        setIsLoggedIn(false);
-        setUserData(null);
-        localStorage.removeItem("isLoggedIn");
-        localStorage.removeItem("userData");
-    };
+        checkLoginStatus();
+    }, []);
 
     return (
-        <AuthContext.Provider value={{ isLoggedIn, userData, login, logout }}>
-            {children}
+        <AuthContext.Provider value={{ isLoggedIn, setLoggedIn: setIsLoggedIn }}>
+        {children}
         </AuthContext.Provider>
     );
-};
+}
 
-// Custom hook untuk menggunakan context
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    return context;
-};
+export function useAuth() {
+    return useContext(AuthContext);
+}

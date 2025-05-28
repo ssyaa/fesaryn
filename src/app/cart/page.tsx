@@ -7,6 +7,8 @@ import { getCart, saveCart } from "../utils/cart";
 import { X } from "lucide-react";
 import CheckoutPanel from "../components/CheckoutPanel";
 
+// ... import dan kode lain tetap sama
+
 export default function Cart() {
   const [cartItems, setCartItems] = useState<Product[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -23,6 +25,14 @@ export default function Cart() {
   };
 
   const totalPrice = cartItems.reduce((acc, item) => acc + item.price, 0);
+
+  const handleCheckoutClick = () => {
+    if (cartItems.length === 0) {
+      alert("Silakan memilih barang anda terlebih dahulu");
+      return;
+    }
+    setIsCheckoutOpen(true);
+  };
 
   return (
     <>
@@ -72,7 +82,7 @@ export default function Cart() {
           {/* Checkout Button */}
           <div className="text-right mt-6">
             <button
-              onClick={() => setIsCheckoutOpen(true)}
+              onClick={handleCheckoutClick}
               className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition"
             >
               Checkout
@@ -82,7 +92,10 @@ export default function Cart() {
       </div>
 
       {/* Checkout Panel */}
-      <CheckoutPanel isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} />
+      <CheckoutPanel
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+      />
     </>
   );
 }

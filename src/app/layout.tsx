@@ -2,9 +2,8 @@
 
 import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css"; // Pastikan sudah ada
-import LoadingOverlay from "./components/loadingOverlay"; // Pastikan komponen ini ada
-import { AuthProvider } from "../context/Authcontext"; // Mengimport AuthContext
+import "./globals.css";
+import LoadingOverlay from "./components/loadingOverlay";
 
 // Load font dengan CSS variable
 const geistSans = Geist({
@@ -28,12 +27,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <title>Sarynthelabel</title>
       </head>
       <body className="flex flex-col min-h-screen bg-white text-black" suppressHydrationWarning>
-        {/* Suspense untuk menangani komponen yang memerlukan loading state */}
         <Suspense fallback={<LoadingOverlay />}>
-          {/* Menambahkan AuthProvider untuk menyediakan autentikasi ke seluruh aplikasi */}
-          <AuthProvider>
-            <main className="flex-grow">{children}</main>
-          </AuthProvider>
+          <main className="flex-grow">{children}</main>
         </Suspense>
       </body>
     </html>

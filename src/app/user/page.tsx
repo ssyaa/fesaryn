@@ -1,90 +1,84 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import Navbar from "../components/Navbar";
+import Profile from "../components/profile";
+import Order from "../components/Order";
 
 export default function UserPage() {
-    const router = useRouter();
-    const [user, setUser] = useState<{ name: string; username: string; email: string } | null>(null);
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-    const [loading, setLoading] = useState<boolean>(true); // Untuk menampilkan loading saat fetch data
+    const [activeTab, setActiveTab] = useState<"profile" | "order">("profile");
+
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string>("");
 
     useEffect(() => {
-        const fetchUserData = async () => {
-            const token = localStorage.getItem("token"); // Mengambil token dari localStorage
-
-            if (!token) {
-                setIsLoggedIn(false);
-                router.push("/status"); // Arahkan ke /status jika token tidak ada
-                return;
-            }
-
+        const fetchUser = async () => {
             try {
+                setLoading(true);
+                setError("");
+                const token = localStorage.getItem("user-token");
                 const response = await axios.get("http://localhost:8000/api/user", {
                     headers: {
-                        Authorization: `Bearer ${token}`, // Menambahkan token ke header
+                        Authorization: `Bearer ${token}`,
                     },
                 });
-            
-                setUser(response.data);
-                setIsLoggedIn(true);
-            } catch (error) {
-                console.error("Gagal fetch user data:", error); // Tambahin ini
-                setIsLoggedIn(false);
-                router.push("/status");
+                setUser(response.data.user || response.data);
+            } catch (err: any) {
+                if (axios.isAxiosError(err)) {
+                    if (err.response?.status === 401) {
+                        setError("Token tidak valid atau sudah kadaluarsa. Silakan login ulang.");
+                    } else {
+                        setError("Gagal memuat data user.");
+                    }
+                } else {
+                    setError("Gagal memuat data user.");
+                }
             } finally {
                 setLoading(false);
             }
-            
         };
 
-        fetchUserData();
-    }, [router]);
-
-    const handleLogout = () => {
-        localStorage.removeItem("token"); // Menghapus token dari localStorage
-        setIsLoggedIn(false);
-        router.push("/status"); // Arahkan ke halaman /status setelah logout
-    };
-
-    if (loading) {
-        return <div>Loading...</div>; // Menampilkan loading sementara data sedang dimuat
-    }
-
-    if (!isLoggedIn || !user) {
-        return null; // Tidak menampilkan apa-apa jika pengguna belum login atau data kosong
-    }
+        fetchUser();
+    }, []);
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
-            <div className="bg-white shadow-lg rounded-lg p-8 w-96">
-                <h2 className="text-2xl font-bold text-center mb-4">Selamat Anda Berhasil Login</h2>
-                <table className="w-full table-auto">
-                    <thead>
-                        <tr>
-                            <th className="py-2 px-4 text-left">Nama</th>
-                            <th className="py-2 px-4 text-left">Username</th>
-                            <th className="py-2 px-4 text-left">Email</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td className="py-2 px-4">{user.name}</td>
-                            <td className="py-2 px-4">{user.username}</td>
-                            <td className="py-2 px-4">{user.email}</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div className="mt-4 flex justify-center">
+        <>
+            <Navbar />
+
+            <div className="max-w-6xl mx-auto p-6 mt-[100px]">
+                <div className="flex border-gray-300">
                     <button
-                        onClick={handleLogout}
-                        className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600"
+                        className={`flex-1 px-4 py-2 font-semibold text-center transition ${
+                            activeTab === "profile"
+                                ? "border-b-2 border-black text-black"
+                                : "border-b border-gray-300 text-gray-500"
+                        }`}
+                        onClick={() => setActiveTab("profile")}
                     >
-                        Logout
+                        Profil
+                    </button>
+                    <button
+                        className={`flex-1 px-4 py-2 font-semibold text-center transition ${
+                            activeTab === "order"
+                                ? "border-b-2 border-black text-black"
+                                : "border-b border-gray-300 text-gray-500"
+                        }`}
+                        onClick={() => setActiveTab("order")}
+                    >
+                        Order
                     </button>
                 </div>
+
+                <div className="mt-6">
+                    {loading && <p>Loading user data...</p>}
+                    {error && <p className="text-red-500">{error}</p>}
+
+                    {!loading && !error && activeTab === "profile" && <Profile user={user} />}
+                    {!loading && !error && activeTab === "order" && <Order />}
+                </div>
             </div>
-        </div>
+        </>
     );
 }

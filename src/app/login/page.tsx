@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
-
-axios.defaults.withCredentials = true;
 
 export default function Login() {
     const router = useRouter();
@@ -13,44 +11,25 @@ export default function Login() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
-    useEffect(() => {
-        const checkLoginStatus = async () => {
-            try {
-                // Cek apakah pengguna sudah login
-                const response = await axios.get("http://localhost:8000/api/login");
-                if (response.status === 200) {
-                    // Jika sudah login, redirect ke halaman user
-                    router.push("/home");
-                }
-            } catch (err) {
-                console.log("User belum login atau terjadi kesalahan.", err);
-            }
-        };
-
-        // Mengecek status login saat komponen dimuat
-        checkLoginStatus();
-    }, [router]);
-
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError("");  // Reset error message sebelum mencoba login
+        setError("");
 
         try {
-            // Mengambil cookie csrf
-            await axios.get("http://localhost:8000/sanctum/csrf-cookie");
-
-            // Mengirim request login ke backend
-            const loginResponse = await axios.post("http://localhost:8000/api/login", {
+            const response = await axios.post("http://localhost:8000/api/login", {
                 email,
                 password,
             });
 
-            if (loginResponse.status === 200) {
-                // Setelah login sukses, redirect ke halaman user
-                router.push("/home");
-            }
+            const token = response.data.token;
+            if (!token) throw new Error("Token tidak ditemukan dari server.");
+
+            // Simpan token ke localStorage dengan key 'user-token' (disesuaikan dengan interceptor B)
+            localStorage.setItem("user-token", token);
+
+            // Redirect ke home setelah login sukses
+            router.push("/home");
         } catch (err: any) {
-            // Menangani error jika login gagal
             if (err.response?.status === 401) {
                 setError("Email atau password salah.");
             } else if (err.response) {
@@ -68,13 +47,9 @@ export default function Login() {
             className="relative flex min-h-screen bg-cover bg-center"
             style={{ backgroundImage: "url('/images/beranda.jpg')" }}
         >
-            {/* Overlay blur */}
             <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-0" />
 
-            {/* Layout kotak kiri dan kanan */}
             <div className="relative z-10 flex flex-1">
-
-                {/* Kotak kiri */}
                 <div className="w-1/2 flex items-center justify-center bg-white/40 backdrop-blur-md text-white p-8">
                     <h1 className="text-3xl font-semibold text-center tracking-widest">
                         Choose ur style <br />
@@ -82,7 +57,6 @@ export default function Login() {
                     </h1>
                 </div>
 
-                {/* Kotak kanan (Login) */}
                 <div className="w-1/2 flex items-center justify-center p-8">
                     <div className="bg-white shadow-lg rounded-lg p-10 h-[600px] w-[500px]">
                         <img
