@@ -1,5 +1,14 @@
 "use client";
 
+// Tambahkan deklarasi global agar TypeScript mengenali window.snap
+declare global {
+    interface Window {
+        snap: {
+            pay: (token: string, options: any) => void;
+        };
+    }
+}
+
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { Product } from "../lib/types/Product";
@@ -41,31 +50,69 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
 
         try {
             const token = localStorage.getItem("user-token");
-            const response = await axios.get("http://localhost:8000/api/user", {
+            const userResponse = await axios.get("http://localhost:8000/api/user", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
 
-            const userData = response.data.user || response.data;
-
-            // Contoh validasi data lengkap (sesuaikan field yang wajib diisi)
+            const userData = userResponse.data.user || userResponse.data;
             const isComplete = userData.name && userData.address && userData.phone;
 
-            if (isComplete) {
-                router.push("/pesan");
-            } else {
+            if (!isComplete) {
                 router.push("/user");
+                return;
             }
+
+            // Create order first
+            const orderResponse = await axios.post(
+                "http://localhost:8000/api/order",
+                {
+                    items: cartItems,
+                    total: totalPrice,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const orderId = orderResponse.data.id;
+
+            // Get Snap token from backend
+            const snapResponse = await axios.post(
+                "http://localhost:8000/api/midtrans/token",
+                { order_id: orderId },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            window.snap.pay(snapResponse.data.token, {
+                onSuccess: (result: any) => {
+                    alert("Pembayaran sukses!");
+                    console.log(result);
+                },
+                onPending: (result: any) => {
+                    alert("Pembayaran pending!");
+                    console.log(result);
+                },
+                onError: (result: any) => {
+                    alert("Pembayaran gagal!");
+                    console.log(result);
+                },
+            });
         } catch (error) {
-            // Jika gagal ambil data user, arahkan ke halaman user supaya bisa update data
-            router.push("/user");
+            console.error("Payment Error:", error);
         }
     };
 
     return (
         <>
-            {/* Backdrop */} 
+            {/* Backdrop */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
@@ -85,7 +132,6 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
                 className="fixed top-0 right-0 h-full w-[400px] bg-white p-6 z-50 shadow-lg overflow-y-auto"
                 style={{ transform: "translateX(100%)" }}
             >
-                {/* Header */}
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-xl font-bold text-black">Checkout</h1>
                     <button
@@ -96,7 +142,6 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
                     </button>
                 </div>
 
-                {/* Items */}
                 {cartItems.length > 0 ? (
                     cartItems.map((item, index) => (
                         <div key={index} className="flex items-center gap-4 mb-4">
@@ -121,12 +166,9 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
                         </div>
                     ))
                 ) : (
-                    <div className="text-center text-gray-500 mt-10">
-                        Your cart is empty.
-                    </div>
+                    <div className="text-center text-gray-500 mt-10">Your cart is empty.</div>
                 )}
 
-                {/* Discount Input */}
                 <div className="flex gap-2 mt-6 mb-4">
                     <input
                         type="text"
@@ -138,7 +180,6 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
                     </button>
                 </div>
 
-                {/* Summary */}
                 <div className="text-sm text-gray-600 space-y-2 mb-6">
                     <div className="flex justify-between">
                         <span>Subtotal</span>
@@ -152,13 +193,11 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
 
                 <hr className="mb-6" />
 
-                {/* Total */}
                 <div className="flex justify-between font-bold text-black text-lg">
                     <span>Total</span>
                     <span>Rp {totalPrice.toLocaleString()}</span>
                 </div>
 
-                {/* Pay Button */}
                 <button
                     onClick={handleProceedToPayment}
                     className="mt-6 w-full bg-black text-white py-3 rounded hover:bg-gray-800 transition"
