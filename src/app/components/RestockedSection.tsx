@@ -1,40 +1,72 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Pagination from "./Pagination";
-import { Product } from "../lib/types/Product";
+import axios from "axios";
 import Image from "next/image";
 
+interface Product {
+  id: number;
+  name: string;
+  price: string | number; // Harga produk
+  stock: number;
+}
 
-interface RestockedSectionProps {
-  products: Product[];
+interface RestockItem {
+  id: number;
+  notes: string;
+  quantity: number;
+  image: string | null;
+  restocked_at: string;
+  price: string | number; // Harga dari restocked (bukan product price)
+  product: Product;
 }
 
 const PRODUCTS_PER_PAGE = 8;
 
-const RestockedSection: React.FC<RestockedSectionProps> = ({ products }) => {
-  const soldOutProducts = products.filter((product) => product.stock === 0);
+const RestockedSection: React.FC = () => {
+  const [restocks, setRestocks] = useState<RestockItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const indexOfLastProduct = currentPage * PRODUCTS_PER_PAGE;
-  const indexOfFirstProduct = indexOfLastProduct - PRODUCTS_PER_PAGE;
-  const currentProducts = soldOutProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  useEffect(() => {
+    axios
+      .get("http://127.0.0.1:8000/api/restockeds")
+      .then((res) => {
+        const formatted = res.data.map((item: any) => ({
+          ...item,
+          image: item.image
+            ? `http://127.0.0.1:8000/storage/${item.image}`
+            : null,
+          price: item.price, // Pastikan harga berasal dari `restocked` bukan `product`
+        }));
+        setRestocks(formatted);
+      })
+      .catch((err) => console.error("Failed to fetch restock data", err));
+  }, []);
+
+  const soonProducts = restocks.filter((r) => r.quantity === 0);
+
+  const indexOfLast = currentPage * PRODUCTS_PER_PAGE;
+  const indexOfFirst = indexOfLast - PRODUCTS_PER_PAGE;
+  const currentItems = soonProducts.slice(indexOfFirst, indexOfLast);
 
   return (
     <div className="bg-white px-6 md:px-16 py-12 text-black">
       <h2 className="text-2xl font-semibold mb-10">Soon on Restocked</h2>
 
-      {soldOutProducts.length === 0 ? (
-        <p className="text-gray-500">We still have all the products available 😊</p>
+      {soonProducts.length === 0 ? (
+        <p className="text-gray-500">
+          We still have all the products available 😊
+        </p>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {currentProducts.map((product) => (
-            <div key={product.id} className="relative text-center">
+          {currentItems.map((restock) => (
+            <div key={restock.id} className="relative text-center">
               <div className="aspect-[3/4] bg-gray-100 relative mb-2 border border-gray-200">
-                {product.images?.[0] ? (
+                {restock.image ? (
                   <Image
-                    src={product.images[0]}
-                    alt={product.name}
+                    src={restock.image}
+                    alt={restock.product.name}
                     fill
                     className="object-cover opacity-50"
                   />
@@ -47,17 +79,26 @@ const RestockedSection: React.FC<RestockedSectionProps> = ({ products }) => {
                   Sold Out
                 </span>
               </div>
-              <p className="text-sm font-medium text-black">/{product.name.toLowerCase()}</p>
-              <p className="text-sm text-gray-600">Rp {product.price.toLocaleString()}</p>
+              <p className="text-sm font-medium text-black">
+                {restock.product.name}
+              </p>
+              <p className="text-sm text-gray-600">
+                {/* Menggunakan harga dari restocked.price */}
+                Rp {Number(restock.price).toLocaleString("id-ID")}
+              </p>
+              <p className="text-sm italic text-gray-500">
+                Restocked on{" "}
+                {new Date(restock.restocked_at).toLocaleDateString("id-ID")}
+              </p>
             </div>
           ))}
         </div>
       )}
 
-      {soldOutProducts.length > PRODUCTS_PER_PAGE && (
+      {soonProducts.length > PRODUCTS_PER_PAGE && (
         <div className="mt-10">
           <Pagination
-            totalItems={soldOutProducts.length}
+            totalItems={soonProducts.length}
             itemsPerPage={PRODUCTS_PER_PAGE}
             currentPage={currentPage}
             onPageChange={setCurrentPage}
