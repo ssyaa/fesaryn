@@ -7,8 +7,6 @@ import { getCart, saveCart } from "../utils/cart";
 import { X } from "lucide-react";
 import CheckoutPanel from "../components/CheckoutPanel";
 
-// ... import dan kode lain tetap sama
-
 export default function Cart() {
   const [cartItems, setCartItems] = useState<Product[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -63,9 +61,9 @@ export default function Cart() {
                 />
                 <span>{item.name}</span>
               </div>
-              <div>{item.price.toLocaleString()} IDR</div>
+              <div>{Math.floor(item.price).toLocaleString("id-ID")} IDR</div>
               <div>1</div>
-              <div>{item.price.toLocaleString()} IDR</div>
+              <div>{Math.floor(item.price).toLocaleString("id-ID")} IDR</div>
               <div>
                 <button onClick={() => handleRemoveItem(index)}>
                   <X className="w-4 h-4 text-black hover:text-red-500 transition" />
@@ -76,7 +74,7 @@ export default function Cart() {
 
           {/* Total Price */}
           <div className="text-right mt-4 text-lg font-semibold text-black">
-            Total: {totalPrice.toLocaleString()} IDR
+            Total: {Math.floor(totalPrice).toLocaleString("id-ID")} IDR
           </div>
 
           {/* Checkout Button */}
