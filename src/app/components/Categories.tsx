@@ -1,27 +1,58 @@
-import Image from "next/image";
+"use client";
 
-const categories = [
-  { name: "abayas", image: "/images/abayas.jpg" },
-  { name: "dress", image: "/images/dress.jpg" },
-  { name: "shirt", image: "/images/shirt.jpg" },
-];
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import axios from "axios";
+
+// Define the category type
+type Category = {
+  name: string;
+  image: string;
+};
 
 const Categories = () => {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Call the API to fetch the categories
+    axios
+      .get("http://127.0.0.1:8000/api/categories")
+      .then((response) => {
+        setCategories(response.data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching categories:", error);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (categories.length === 0) {
+    return <div>No categories available.</div>; // Display message if no categories are available
+  }
+
   return (
     <div className="flex flex-col items-center justify-center py-12 bg-white px-6">
-      <h2 className="text-2xl font-semibold text-black mt-10 mb-10">Categories</h2>
+      <h2 className="text-2xl font-semibold text-black mt-10 mb-10">
+        Categories
+      </h2>
       <div className="flex flex-wrap justify-center gap-6 w-full max-w-5xl">
         {categories.map((category) => (
           <div
             key={category.name}
-            className="relative w-40 h-20 rounded-2xl overflow-hidden group"
+            className="relative w-40 h-40 rounded-2xl overflow-hidden group"
           >
             <Image
               src={category.image}
               alt={category.name}
-              fill
+              width={160}
+              height={160}
               className="object-cover"
-              sizes="(max-width: 768px) 150px, 160px"
             />
             <div className="absolute inset-0 bg-black opacity-30 group-hover:opacity-50 transition-opacity" />
             <span className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg capitalize">
