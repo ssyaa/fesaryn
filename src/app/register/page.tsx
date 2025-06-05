@@ -1,166 +1,112 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import axios from "axios";
-import * as React from "react";
-import Image from "next/image";
-import Link from "next/link";
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
-export default function Register() {
-  const [name, setName] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const router = useRouter();
+export default function RegisterPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [username, setUsername] = useState('')
+  const [agree, setAgree] = useState(false)
+  const [error, setError] = useState('')
+  const router = useRouter()
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
 
-    if (password !== confirmPassword) {
-      setError("Password tidak cocok!");
-      return;
+    if (!agree) {
+      setError('Kamu harus menyetujui kebijakan privasi.')
+      return
     }
 
-    try {
-      await axios.post("/api/register", {
-        name,
-        username,
-        email,
-        password,
-        confirmPassword,
-      });
-
-      localStorage.setItem("isLoggedIn", "true");
-      router.push("/user");
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setError(
-          "Terjadi kesalahan saat registrasi. Periksa kembali data yang dimasukkan."
-        );
-      } else {
-        setError("Terjadi kesalahan jaringan.");
-      }
+    const userData = {
+      name,
+      username,
+      email,
+      password,
+      password_confirmation: password, // backend biasanya butuh ini, walau controller kamu nggak eksplisit cek confirmation
     }
-  };
+
+    localStorage.setItem('userRegisterData', JSON.stringify(userData))
+    router.push('/register/address')
+  }
 
   return (
-    <div
-      className="relative flex min-h-screen bg-cover bg-center"
-      style={{ backgroundImage: "url('/images/beranda.jpg')" }}
-    >
-      {/* Overlay blur */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-0" />
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 py-10 bg-white">
+      <a href="/" className="self-start mb-4 text-sm text-gray-500">&lt; BACK</a>
 
-      {/* Layout kiri kanan */}
-      <div className="relative z-10 flex flex-1">
-        {/* Kotak kiri */}
-        <div className="w-1/2 flex items-center justify-center bg-white/40 backdrop-blur-md text-white p-8">
-          <h1 className="text-3xl font-semibold text-center tracking-widest">
-            Choose ur style <br />
-            with <span className="font-bold">@sarynthelebel</span>
-          </h1>
-        </div>
-
-        {/* Kotak kanan */}
-        <div className="w-1/2 flex items-center justify-center p-2">
-          <div className="bg-white shadow-lg rounded-lg p-10 h-[700px] w-[500px]">
-            <Image
-              src="/sarynlogo.png"
-              alt="Saryn Logo"
-              width={64}
-              height={64}
-              className="mx-auto mb-4"
-            />
-            <h2 className="text-3xl font-bold text-left mb-3 mt-6">Register</h2>
-            <form onSubmit={handleRegister}>
-              <div className="mb-2">
-                <label className="block text-gray-700 tracking-wide">
-                  Nama
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-grey-300"
-                  placeholder="Insert your name.."
-                  required
-                />
-              </div>
-              <div className="mb-2">
-                <label className="block text-gray-700 tracking-wide">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-grey-300"
-                  placeholder="Create your username.."
-                  required
-                />
-              </div>
-              <div className="mb-2">
-                <label className="block text-gray-700 tracking-wide">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-grey-300"
-                  placeholder="Insert your email.."
-                  required
-                />
-              </div>
-              <div className="mb-2">
-                <label className="block text-gray-700 tracking-wide">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-grey-300"
-                  placeholder="Insert your password.."
-                  required
-                />
-              </div>
-              <div className="mb-2">
-                <label className="block text-gray-700 tracking-wide">
-                  Konfirmasi Password
-                </label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full mt-2 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-grey-300"
-                  placeholder="Repeat your password.."
-                  required
-                />
-                {error && <p className="text-red-500 text-sm">{error}</p>}
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-gray-900 text-white py-2 rounded-md hover:bg-gray-800"
-              >
-                Register
-              </button>
-            </form>
-            <p className="mt-4 text-center text-sm text-gray-600">
-              Already have an account?{" "}
-              <Link
-                href="/login"
-                className="text-gray-900 hover:underline font-medium"
-              >
-                Login here!
-              </Link>
-            </p>
-          </div>
-        </div>
+      <div className="mb-8">
+        <img src="/sarynlogo.png" alt="Logo" className="h-12" />
       </div>
+
+      <h1 className="text-2xl font-semibold mb-6">Detail Pribadi</h1>
+
+      <form onSubmit={handleSubmit} className="w-full max-w-md space-y-6">
+        <input
+          type="email"
+          placeholder="Email"
+          className="w-full border-b py-2 focus:outline-none"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+
+        <input
+          type="password"
+          placeholder="Kata Sandi"
+          className="w-full border-b py-2 focus:outline-none"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        <input
+          type="text"
+          placeholder="Nama"
+          className="w-full border-b py-2 focus:outline-none"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+
+        <input
+          type="text"
+          placeholder="Username"
+          className="w-full border-b py-2 focus:outline-none"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+
+        <label className="flex items-center text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={agree}
+            onChange={(e) => setAgree(e.target.checked)}
+            className="mr-2"
+          />
+          Saya telah membaca dan memahami Kebijakan Privasi dan Cookie
+        </label>
+
+        {error && <p className="text-red-600 text-sm">{error}</p>}
+
+        <button
+          type="submit"
+          className="w-full py-2 bg-black text-white font-medium hover:opacity-90 transition"
+        >
+          Make Account
+        </button>
+      </form>
+
+      <footer className="mt-16 text-center text-sm text-gray-500">
+        <div className="flex justify-center space-x-4 mt-4 mb-2">
+          <a href="#">Catalogue</a>
+          <a href="#">About</a>
+          <a href="#">Custom</a>
+        </div>
+        <p>&copy; 2025 Sarynthelabel. All Rights Reserved.</p>
+      </footer>
     </div>
-  );
+  )
 }

@@ -11,22 +11,31 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
     isLoggedIn: false,
     setLoggedIn: () => {},
-    });
+});
 
-    export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
-        // Cek login status saat Layout dimuat
         const checkLoginStatus = async () => {
+        const token = localStorage.getItem("user-token");
+        if (!token) {
+            setIsLoggedIn(false);
+            return;
+        }
+
         try {
-            const response = await axios.get("http://localhost:8000/api/login", { withCredentials: true });
+            const response = await axios.get("http://localhost:8000/api/user/me", {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            });
             if (response.status === 200) {
             setIsLoggedIn(true);
             } else {
             setIsLoggedIn(false);
             }
-        } catch {
+        } catch (err) {
             setIsLoggedIn(false);
         }
         };

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
+import Cookies from "js-cookie";
 
 export default function Login() {
     const router = useRouter();
@@ -21,13 +22,14 @@ export default function Login() {
                 password,
             });
 
-            const token = response.data.token;
+            // Sesuaikan dengan response backend kamu, biasanya token di response.data.access_token atau response.data.token
+            const token = response.data.token || response.data.access_token;
             if (!token) throw new Error("Token tidak ditemukan dari server.");
 
-            // Simpan token ke localStorage dengan key 'user-token' (disesuaikan dengan interceptor B)
-            localStorage.setItem("user-token", token);
+            // Simpan token di cookies, expire 7 hari
+            Cookies.set("user-token", token, { expires: 7, secure: true, sameSite: "lax" });
 
-            // Redirect ke home setelah login sukses
+            // Redirect ke halaman home setelah login sukses
             router.push("/home");
         } catch (err: any) {
             if (err.response?.status === 401) {
