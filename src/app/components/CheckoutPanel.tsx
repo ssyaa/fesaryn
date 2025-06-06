@@ -26,11 +26,22 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
     const [loginMessage, setLoginMessage] = useState("");
 
     useEffect(() => {
-        if (isOpen) {
-            const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-            setCartItems(storedCart);
-        }
-    }, [isOpen]);
+    // Ambil cart dari localStorage saat panel dibuka
+    if (isOpen) {
+        const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
+        setCartItems(storedCart);
+    }
+
+    // Tambahkan script Snap Midtrans
+    const script = document.createElement("script");
+    script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
+    script.setAttribute("data-client-key", "SB-Mid-client-elkGxR3Ncj-adVXz"); // Ganti dengan CLIENT KEY kamu dari Midtrans
+    document.body.appendChild(script);
+
+    return () => {
+        document.body.removeChild(script); // Clean up saat komponen unmount
+    };
+}, [isOpen]);
 
     const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * (item.quantity || 1)), 0);
 
