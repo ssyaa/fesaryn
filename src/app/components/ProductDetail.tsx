@@ -1,37 +1,63 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, useState, useContext } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "./Navbar";
-import { addToCart } from "../utils/cart";
 import { Product } from "../lib/types/Product";
+import { AuthContext } from "../../context/Authcontext"; // ⬅️ pastikan path ini sesuai
 
 interface ProductDetailProps {
   product: Product | null;
 }
 
 const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [buttonText, setButtonText] = useState("Order");
-  const [isLoading, setIsLoading] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(0);
+    const [buttonText, setButtonText] = useState("Order");
+    const [isLoading, setIsLoading] = useState(false);
+    const { user, token } = useContext(AuthContext); // ⬅️ ambil User dari context
 
-  if (!product) return <div>Loading...</div>;
+    if (!product) return <div>Loading...</div>;
 
-  const handleOrder = () => {
+    const handleOrder = async () => {
+    if (!user) {
+      alert("Silakan login terlebih dahulu untuk memesan.");
+      return;
+    }
+
     if (isLoading) return;
 
     setIsLoading(true);
-    setButtonText("Add to Cart");
-    addToCart(product);
+    setButtonText("Add to Cart...");
 
-    setButtonText("Success");
+    try {
+      const response = await fetch("http://localhost:8000/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          product_id: product.id,  // <-- ini penting
+          quantity: 1,
+        }),
+      });
 
-    setTimeout(() => {
+      if (!response.ok) throw new Error("Gagal menambahkan ke keranjang");
+
+      setButtonText("Success");
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat menambahkan ke cart.");
       setButtonText("Order");
-      setIsLoading(false);
-    }, 2000);
-  };
+    } finally {
+      setTimeout(() => {
+        setButtonText("Order");
+        setIsLoading(false);
+      }, 2000);
+    }
+};
+
 
   return (
     <>
@@ -66,7 +92,9 @@ const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
                     width={100}
                     height={120}
                     className={`cursor-pointer border ${
-                      selectedImage === idx ? "border-black" : "border-gray-300"
+                      selectedImage === idx
+                        ? "border-black"
+                        : "border-gray-300"
                     }`}
                     onClick={() => setSelectedImage(idx)}
                   />
@@ -107,7 +135,9 @@ const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
 
           <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1 mb-10">
             {Array.isArray(product.details) &&
-              product.details.map((detail, idx) => <li key={idx}>{detail}</li>)}
+              product.details.map((detail, idx) => (
+                <li key={idx}>{detail}</li>
+              ))}
           </ul>
 
           <div className="flex gap-2">

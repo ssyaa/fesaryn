@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../../context/Authcontext"; // pastikan path ini sesuai
 
 interface User {
   email: string;
@@ -26,31 +28,49 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState<string>("");
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("user-token") : null;
+  const router = useRouter();
+  const { setLoggedIn } = useAuth();
 
-  // Ambil data user saat login
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!token) {
-        setError("Token tidak ditemukan, silakan login ulang.");
-        return;
-      }
+    const token = localStorage.getItem("token");
 
+    if (!token) {
+      setError("Maaf, token tidak ditemukan.");
+      setLoggedIn(false);
+      router.push("/login");
+      return;
+    }
+
+    const fetchUserData = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/api/user/me", {
+        const res = await axios.get("http://localhost:8000/api/user/profile", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        setUser(res.data);
+
+        const fetchedUser = res.data.user || res.data;
+
+        if (!fetchedUser || Object.keys(fetchedUser).length === 0) {
+          setError("Pengguna tidak ditemukan.");
+          return;
+        }
+
+        setUser(fetchedUser);
       } catch (err: any) {
-        setError("Gagal mengambil data user. Silakan login ulang.");
+        if (err.response?.status === 401) {
+          setError("Maaf, token expired.");
+          localStorage.removeItem("token");
+          setLoggedIn(false);
+          router.push("/login");
+        } else {
+          setError("Maaf, data tidak berhasil diambil.");
+        }
       }
     };
 
     fetchUserData();
-  }, [token]);
+  }, [setLoggedIn, router]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -66,8 +86,12 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
     setError(null);
     setSuccessMessage(null);
 
+    const token = localStorage.getItem("token");
+
     if (!token) {
       setError("Token tidak ditemukan, silakan login ulang.");
+      setLoggedIn(false);
+      router.push("/login");
       return;
     }
 
@@ -77,7 +101,7 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
         updateData.password = newPassword;
       }
 
-      await axios.put("http://localhost:8000/api/user", updateData, {
+      await axios.put("http://localhost:8000/api/user/profile", updateData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -95,9 +119,25 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setLoggedIn(false);
+    router.push("/login");
+  };
+
+  if (error) {
+    return (
+      <div className="text-center mt-10 text-red-600 bg-red-100 p-4 rounded">
+        {error}
+      </div>
+    );
+  }
+
   if (!user) {
     return (
-      <div className="text-center mt-10 text-gray-500">Memuat data pengguna...</div>
+      <div className="text-center mt-10 text-gray-500">
+        Memuat data pengguna...
+      </div>
     );
   }
 
@@ -186,6 +226,12 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
             ✏️ Edit
           </button>
         )}
+        <button
+          className="text-red-600 hover:underline"
+          onClick={handleLogout}
+        >
+          🚪 Logout
+        </button>
         <button className="text-red-600 hover:underline">🗑️ Hapus Akun</button>
       </div>
     </div>

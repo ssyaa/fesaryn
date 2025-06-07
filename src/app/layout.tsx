@@ -4,8 +4,8 @@ import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import LoadingOverlay from "./components/loadingOverlay";
+import { AuthProvider } from "../context/Authcontext"; // <- Import contextnya
 
-// Load font dengan CSS variable
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -27,9 +27,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <title>Sarynthelabel</title>
       </head>
       <body className="flex flex-col min-h-screen bg-white text-black" suppressHydrationWarning>
-        <Suspense fallback={<LoadingOverlay />}>
-          <main className="flex-grow">{children}</main>
-        </Suspense>
+        <AuthProvider>
+          <Suspense fallback={<LoadingOverlay />}>
+            <main className="flex-grow">{children}</main>
+          </Suspense>
+        </AuthProvider>
       </body>
     </html>
   );

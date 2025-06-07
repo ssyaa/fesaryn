@@ -1,30 +1,83 @@
-"use client";
+'use client'
 
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { Product } from "../lib/types/Product";
-import { getCart, saveCart } from "../utils/cart";
 import { X } from "lucide-react";
 import CheckoutPanel from "../components/CheckoutPanel";
+import { useAuth } from "../../context/Authcontext";
 
 export default function Cart() {
+  const { isAuthenticated, token } = useAuth();
   const [cartItems, setCartItems] = useState<Product[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // state loading
 
   useEffect(() => {
-    const cart = getCart();
-    setCartItems(cart);
-  }, []);
+    if (!isAuthenticated) {
+      setCartItems([]);
+      return;
+    }
 
-  const handleRemoveItem = (indexToRemove: number) => {
-    const newCart = cartItems.filter((_, index) => index !== indexToRemove);
-    setCartItems(newCart);
-    saveCart(newCart);
+    setIsLoading(true); // mulai loading
+
+    fetch("http://localhost:8000/api/cart", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Gagal mengambil data cart");
+        const data = await res.json();
+        const mappedCart = data.cart.map((item: any) => ({
+          id: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          images: item.product.images,
+          quantity: item.quantity,
+        }));
+        setCartItems(mappedCart);
+        setIsLoading(false); // selesai loading
+      })
+      .catch((err) => {
+        console.error(err);
+        setCartItems([]);
+        setIsLoading(false); // selesai loading walau error
+      });
+  }, [isAuthenticated, token]);
+
+  const handleRemoveItem = async (productId: string) => {
+    try {
+      const itemToRemove = cartItems.find(item => item.id === productId);
+      if (!itemToRemove) return;
+
+      const res = await fetch(`/api/cart/${itemToRemove.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (!res.ok) throw new Error("Gagal menghapus item");
+
+      setCartItems((prev) => prev.filter(item => item.id !== productId));
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const totalPrice = cartItems.reduce((acc, item) => acc + item.price, 0);
+  const totalPrice = cartItems.reduce(
+    (acc, item) => acc + item.price * (item.quantity || 1),
+    0
+  );
 
   const handleCheckoutClick = () => {
+    if (!isAuthenticated) {
+      alert("Silakan login terlebih dahulu untuk melakukan checkout.");
+      return;
+    }
+
     if (cartItems.length === 0) {
       alert("Silakan memilih barang anda terlebih dahulu");
       return;
@@ -47,10 +100,23 @@ export default function Cart() {
             <div></div>
           </div>
 
+          {/* Loading Message */}
+          {isLoading && (
+            <div className="text-center py-10 text-gray-500">
+              Mengambil data...
+            </div>
+          )}
+
           {/* Cart Items */}
-          {cartItems.map((item, index) => (
+          {!isLoading && cartItems.length === 0 && (
+            <div className="text-center py-10 text-gray-500">
+              Cart kosong.
+            </div>
+          )}
+
+          {!isLoading && cartItems.map((item, index) => (
             <div
-              key={index}
+              key={item.id}
               className="grid grid-cols-5 text-center items-center border-b py-4 text-black text-sm"
             >
               <div className="flex items-center justify-center">
@@ -62,10 +128,10 @@ export default function Cart() {
                 <span>{item.name}</span>
               </div>
               <div>{Math.floor(item.price).toLocaleString("id-ID")} IDR</div>
-              <div>1</div>
-              <div>{Math.floor(item.price).toLocaleString("id-ID")} IDR</div>
+              <div>{item.quantity}</div>
+              <div>{Math.floor(item.price * (item.quantity || 1)).toLocaleString("id-ID")} IDR</div>
               <div>
-                <button onClick={() => handleRemoveItem(index)}>
+                <button onClick={() => handleRemoveItem(item.id)}>
                   <X className="w-4 h-4 text-black hover:text-red-500 transition" />
                 </button>
               </div>
@@ -73,19 +139,23 @@ export default function Cart() {
           ))}
 
           {/* Total Price */}
-          <div className="text-right mt-4 text-lg font-semibold text-black">
-            Total: {Math.floor(totalPrice).toLocaleString("id-ID")} IDR
-          </div>
+          {!isLoading && cartItems.length > 0 && (
+            <div className="text-right mt-4 text-lg font-semibold text-black">
+              Total: {Math.floor(totalPrice).toLocaleString("id-ID")} IDR
+            </div>
+          )}
 
           {/* Checkout Button */}
-          <div className="text-right mt-6">
-            <button
-              onClick={handleCheckoutClick}
-              className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition"
-            >
-              Checkout
-            </button>
-          </div>
+          {!isLoading && cartItems.length > 0 && (
+            <div className="text-right mt-6">
+              <button
+                onClick={handleCheckoutClick}
+                className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition"
+              >
+                Checkout
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

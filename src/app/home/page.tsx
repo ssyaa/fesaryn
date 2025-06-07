@@ -37,8 +37,8 @@ export default function HomePage() {
             <Navbar />
             <HeroSection />
             <Categories />
-            <AvailableProducts products={availableProducts} />
-            <RestockedSection products={restockedProducts} />
+            <AvailableProducts/>
+            <RestockedSection/>
             <Footer />
         </>
     );

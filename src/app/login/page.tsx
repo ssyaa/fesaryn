@@ -4,10 +4,12 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
-import Cookies from "js-cookie";
+import { useAuth } from "../../context/Authcontext"; // pastikan path ini sesuai
 
 export default function Login() {
     const router = useRouter();
+    const { login } = useAuth(); // Ambil fungsi login dari context
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -22,14 +24,11 @@ export default function Login() {
                 password,
             });
 
-            // Sesuaikan dengan response backend kamu, biasanya token di response.data.access_token atau response.data.token
             const token = response.data.token || response.data.access_token;
             if (!token) throw new Error("Token tidak ditemukan dari server.");
 
-            // Simpan token di cookies, expire 7 hari
-            Cookies.set("user-token", token, { expires: 7, secure: true, sameSite: "lax" });
+            await login(token); // login lewat context
 
-            // Redirect ke halaman home setelah login sukses
             router.push("/home");
         } catch (err: any) {
             if (err.response?.status === 401) {
