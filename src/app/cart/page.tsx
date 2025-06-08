@@ -31,7 +31,8 @@ export default function Cart() {
         if (!res.ok) throw new Error("Gagal mengambil data cart");
         const data = await res.json();
         const mappedCart = data.cart.map((item: any) => ({
-          id: item.product.id,
+          id: item.id, // <- ini id cartItem, bukan product
+          productId: item.product.id,
           name: item.product.name,
           price: item.product.price,
           images: item.product.images,
@@ -47,12 +48,9 @@ export default function Cart() {
       });
   }, [isAuthenticated, token]);
 
-  const handleRemoveItem = async (productId: string) => {
+  const handleRemoveItem = async (cartItemId: string) => {
     try {
-      const itemToRemove = cartItems.find(item => item.id === productId);
-      if (!itemToRemove) return;
-
-      const res = await fetch(`/api/cart/${itemToRemove.id}`, {
+      const res = await fetch(`/api/cart/${cartItemId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -61,7 +59,7 @@ export default function Cart() {
       });
       if (!res.ok) throw new Error("Gagal menghapus item");
 
-      setCartItems((prev) => prev.filter(item => item.id !== productId));
+      setCartItems((prev) => prev.filter(item => item.id !== cartItemId));
     } catch (error) {
       console.error(error);
     }

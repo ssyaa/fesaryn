@@ -1,18 +1,10 @@
 "use client";
 
-// Tambahkan deklarasi global agar TypeScript mengenali window.snap
-declare global {
-    interface Window {
-        snap: {
-            pay: (token: string, options: any) => void;
-        };
-    }
-}
-
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { Product } from "../lib/types/Product";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../../context/Authcontext";
 import axios from "axios";
 
 interface CheckoutPanelProps {
@@ -22,87 +14,124 @@ interface CheckoutPanelProps {
 
 const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
     const [cartItems, setCartItems] = useState<Product[]>([]);
-    const router = useRouter();
     const [loginMessage, setLoginMessage] = useState("");
+    const { isAuthenticated, token } = useAuth();
+    const router = useRouter();
+    const [isSnapReady, setIsSnapReady] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
-    // Ambil cart dari localStorage saat panel dibuka
-    if (isOpen) {
-        const storedCart = JSON.parse(localStorage.getItem("cart") || "[]");
-        setCartItems(storedCart);
-    }
+        if (!isOpen || !isAuthenticated) return;
 
-    // Tambahkan script Snap Midtrans
-    const script = document.createElement("script");
-    script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
-    script.setAttribute("data-client-key", "SB-Mid-client-elkGxR3Ncj-adVXz"); // Ganti dengan CLIENT KEY kamu dari Midtrans
-    document.body.appendChild(script);
+        const fetchCart = async () => {
+            try {
+                const res = await fetch("http://localhost:8000/api/cart", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                });
+                if (!res.ok) throw new Error("Gagal mengambil data cart");
 
-    return () => {
-        document.body.removeChild(script); // Clean up saat komponen unmount
-    };
-}, [isOpen]);
+                const data = await res.json();
+                const mappedCart = data.cart.map((item: any) => ({
+                    id: item.product.id,
+                    name: item.product.name,
+                    price: item.product.price,
+                    images: item.product.images,
+                    quantity: item.quantity,
+                }));
+                setCartItems(mappedCart);
+            } catch (err) {
+                console.error("Fetch cart error:", err);
+                setCartItems([]);
+            }
+        };
 
-    const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * (item.quantity || 1)), 0);
+        fetchCart();
+
+        const script = document.createElement("script");
+        script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
+        script.setAttribute("data-client-key", "SB-Mid-client-elkGxR3Ncj-adVXz");
+        script.onload = () => setIsSnapReady(true);
+        script.onerror = () => console.error("Gagal memuat script Midtrans Snap.");
+        document.body.appendChild(script);
+
+        return () => {
+            document.body.removeChild(script);
+            setIsSnapReady(false);
+        };
+    }, [isOpen, isAuthenticated, token]);
+
+    const totalPrice = cartItems.reduce(
+        (acc, item) => acc + item.price * (item.quantity || 1),
+        0
+    );
 
     const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget) {
-            onClose();
-        }
+        if (e.target === e.currentTarget) onClose();
     };
 
     const handleProceedToPayment = async () => {
-        const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-
-        if (!isLoggedIn) {
+        if (!isAuthenticated) {
             setLoginMessage("Silahkan login terlebih dahulu");
             return;
         }
 
+        if (!isSnapReady || !window.snap) {
+            alert("Midtrans belum siap. Silakan tunggu beberapa detik dan coba lagi.");
+            return;
+        }
+
+        if (isProcessing) return;
+        setIsProcessing(true);
+
         try {
-            const token = localStorage.getItem("user-token");
-            const userResponse = await axios.get("http://localhost:8000/api/user", {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+            // Ambil data user
+            const userResponse = await axios.get("http://localhost:8000/api/user/profile", {
+                headers: { Authorization: `Bearer ${token}` },
             });
+            const user = userResponse.data.user || userResponse.data;
 
-            const userData = userResponse.data.user || userResponse.data;
-            const isComplete = userData.name && userData.address && userData.phone;
-
+            const isComplete = user.name && user.address && user.phone && user.email;
             if (!isComplete) {
                 router.push("/user");
                 return;
             }
 
-            // Create order first
-            const orderResponse = await axios.post(
+            // Step 1: Buat order
+            const orderRes = await axios.post(
                 "http://localhost:8000/api/order",
                 {
                     items: cartItems,
                     total: totalPrice,
                 },
                 {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
+                    headers: { Authorization: `Bearer ${token}` },
                 }
             );
 
-            const orderId = orderResponse.data.id;
+            const orderId = orderRes.data.id || orderRes.data.order_id;
 
-            // Get Snap token from backend
-            const snapResponse = await axios.post(
-                "http://localhost:8000/api/midtrans/token",
-                { order_id: orderId },
+            // Step 2: Minta snap token
+            const snapRes = await axios.post(
+                "http://localhost:8000/api/midtrans/snap-token",
                 {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
+                    amount: totalPrice,
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone,
+                    order_id: orderId.toString(),
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
                 }
             );
 
-            window.snap.pay(snapResponse.data.token, {
+            const snapToken = snapRes.data.snap_token;
+
+            // Step 3: Bayar pakai Snap
+            window.snap.pay(snapToken, {
                 onSuccess: (result: any) => {
                     alert("Pembayaran sukses!");
                     console.log(result);
@@ -117,9 +146,13 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
                 },
             });
         } catch (error) {
-            console.error("Payment Error:", error);
+            console.error("Payment error:", error);
+            alert("Terjadi kesalahan saat memproses pembayaran.");
+        } finally {
+            setIsProcessing(false);
         }
     };
+
 
     return (
         <>
@@ -180,18 +213,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
                     <div className="text-center text-gray-500 mt-10">Your cart is empty.</div>
                 )}
 
-                <div className="flex gap-2 mt-6 mb-4">
-                    <input
-                        type="text"
-                        placeholder="Discount code"
-                        className="flex-1 border rounded px-3 py-2 text-sm"
-                    />
-                    <button className="bg-gray-800 text-white text-sm px-4 rounded hover:bg-gray-700 transition">
-                        Apply
-                    </button>
-                </div>
-
-                <div className="text-sm text-gray-600 space-y-2 mb-6">
+                <div className="text-sm text-gray-600 space-y-2 mb-6 mt-6">
                     <div className="flex justify-between">
                         <span>Subtotal</span>
                         <span>Rp {totalPrice.toLocaleString()}</span>
@@ -211,10 +233,19 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
 
                 <button
                     onClick={handleProceedToPayment}
-                    className="mt-6 w-full bg-black text-white py-3 rounded hover:bg-gray-800 transition"
+                    className={`mt-6 w-full py-3 rounded transition ${
+                        isProcessing
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-black text-white hover:bg-gray-800"
+                    }`}
+                    disabled={isProcessing}
                 >
-                    Proceed to Payment
+                    {isProcessing ? "Processing..." : "Proceed to Payment"}
                 </button>
+
+                {loginMessage && (
+                    <p className="text-red-500 text-sm text-center mt-4">{loginMessage}</p>
+                )}
             </motion.div>
         </>
     );

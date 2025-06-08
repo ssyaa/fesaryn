@@ -25,6 +25,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Sarynthelabel</title>
+        <script
+          src="https://app.sandbox.midtrans.com/snap/snap.js"
+          data-client-key="SB-Mid-client-elkGxR3Ncj-adVXz"
+        />
       </head>
       <body className="flex flex-col min-h-screen bg-white text-black" suppressHydrationWarning>
         <AuthProvider>
