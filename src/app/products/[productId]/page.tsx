@@ -38,7 +38,7 @@ const ProductPage = () => {
           const images = rawImages.map((img: string) =>
             img.startsWith("http")
               ? img
-              : `http://localhost:8000/storage/${img}`
+              : `http://localhost:8000/api/storage/${img}`
           );
 
           return { ...item, images };

@@ -1,11 +1,12 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Product } from "../lib/types/Product";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/Authcontext";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 interface CheckoutPanelProps {
     isOpen: boolean;
@@ -20,33 +21,38 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
     const [isSnapReady, setIsSnapReady] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
 
+    const totalPrice = cartItems.reduce(
+        (acc, item) => acc + item.price * (item.quantity || 1),
+        0
+    );
+
+    const fetchCart = useCallback(async () => {
+        try {
+            const res = await fetch("http://localhost:8000/api/cart", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+            if (!res.ok) throw new Error("Gagal mengambil data cart");
+            const data = await res.json();
+
+            const mappedCart = data.cart.map((item: any) => ({
+                id: item.product.id,
+                name: item.product.name,
+                price: item.product.price,
+                images: item.product.image,
+                quantity: item.quantity,
+            }));
+            setCartItems(mappedCart);
+        } catch (err) {
+            console.error("Fetch cart error:", err);
+            setCartItems([]);
+        }
+    }, [token]);
+
     useEffect(() => {
         if (!isOpen || !isAuthenticated) return;
-
-        const fetchCart = async () => {
-            try {
-                const res = await fetch("http://localhost:8000/api/cart", {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                });
-                if (!res.ok) throw new Error("Gagal mengambil data cart");
-
-                const data = await res.json();
-                const mappedCart = data.cart.map((item: any) => ({
-                    id: item.product.id,
-                    name: item.product.name,
-                    price: item.product.price,
-                    images: item.product.images,
-                    quantity: item.quantity,
-                }));
-                setCartItems(mappedCart);
-            } catch (err) {
-                console.error("Fetch cart error:", err);
-                setCartItems([]);
-            }
-        };
 
         fetchCart();
 
@@ -61,16 +67,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
             document.body.removeChild(script);
             setIsSnapReady(false);
         };
-    }, [isOpen, isAuthenticated, token]);
-
-    const totalPrice = cartItems.reduce(
-        (acc, item) => acc + item.price * (item.quantity || 1),
-        0
-    );
-
-    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget) onClose();
-    };
+    }, [isOpen, isAuthenticated, fetchCart]);
 
     const handleProceedToPayment = async () => {
         if (!isAuthenticated) {
@@ -79,7 +76,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
         }
 
         if (!isSnapReady || !window.snap) {
-            alert("Midtrans belum siap. Silakan tunggu beberapa detik dan coba lagi.");
+            toast.error("Midtrans belum siap. Silakan tunggu beberapa detik dan coba lagi.");
             return;
         }
 
@@ -87,19 +84,19 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
         setIsProcessing(true);
 
         try {
-            // Ambil data user
-            const userResponse = await axios.get("http://localhost:8000/api/user/profile", {
+            const userRes = await axios.get("http://localhost:8000/api/user/profile", {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            const user = userResponse.data.user || userResponse.data;
 
+            const user = userRes.data.user || userRes.data;
             const isComplete = user.name && user.address && user.phone && user.email;
+
             if (!isComplete) {
+                toast.error("Lengkapi profil terlebih dahulu.");
                 router.push("/user");
                 return;
             }
 
-            // Step 1: Buat order
             const orderRes = await axios.post(
                 "http://localhost:8000/api/order",
                 {
@@ -112,16 +109,19 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
             );
 
             const orderId = orderRes.data.id || orderRes.data.order_id;
+            if (!orderId || isNaN(Number(orderId))) {
+                toast.error("ID order tidak valid.");
+                return;
+            }
 
-            // Step 2: Minta snap token
             const snapRes = await axios.post(
                 "http://localhost:8000/api/midtrans/snap-token",
                 {
+                    order_id: Number(orderId),
                     amount: totalPrice,
                     name: user.name,
                     email: user.email,
                     phone: user.phone,
-                    order_id: orderId.toString(),
                 },
                 {
                     headers: { Authorization: `Bearer ${token}` },
@@ -130,38 +130,63 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
 
             const snapToken = snapRes.data.snap_token;
 
-            // Step 3: Bayar pakai Snap
             window.snap.pay(snapToken, {
                 onSuccess: (result: any) => {
-                    alert("Pembayaran sukses!");
-                    console.log(result);
+                    toast.success("Pembayaran berhasil!");
+                    console.log("Success:", result);
+                    handleCheckout(); // checkout setelah pembayaran sukses
                 },
                 onPending: (result: any) => {
-                    alert("Pembayaran pending!");
-                    console.log(result);
+                    toast("Pembayaran sedang diproses...", { icon: "⏳" });
+                    console.log("Pending:", result);
                 },
                 onError: (result: any) => {
-                    alert("Pembayaran gagal!");
-                    console.log(result);
+                    toast.error("Pembayaran gagal!");
+                    console.error("Error:", result);
+                },
+                onClose: () => {
+                    toast("Kamu menutup pembayaran.", { icon: "❌" });
                 },
             });
         } catch (error) {
             console.error("Payment error:", error);
-            alert("Terjadi kesalahan saat memproses pembayaran.");
+            if (axios.isAxiosError(error) && error.response?.status === 422) {
+                const msg = error.response.data?.message || "Data yang dikirim tidak valid.";
+                toast.error(`Validasi gagal: ${msg}`);
+            } else {
+                toast.error("Terjadi kesalahan saat memproses pembayaran.");
+            }
         } finally {
             setIsProcessing(false);
         }
     };
 
+    const handleCheckout = async () => {
+        try {
+            const res = await axios.post(
+                "http://localhost:8000/api/cart/checkout",
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            toast.success("Checkout berhasil!");
+            setCartItems([]);
+            router.push(`/payment/${res.data.order_id}`);
+        } catch (err) {
+            toast.error("Gagal checkout");
+        }
+    };
 
     return (
         <>
-            {/* Backdrop */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
                         className="fixed inset-0 bg-opacity-30 backdrop-blur-sm z-40"
-                        onClick={handleBackdropClick}
+                        onClick={(e) => e.target === e.currentTarget && onClose()}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -169,7 +194,6 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
                 )}
             </AnimatePresence>
 
-            {/* Checkout Panel */}
             <motion.div
                 animate={{ x: isOpen ? 0 : "100%" }}
                 transition={{ type: "tween", duration: 0.4 }}
@@ -191,9 +215,13 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
                         <div key={index} className="flex items-center gap-4 mb-4">
                             <div className="relative">
                                 <img
-                                    src={item.images?.[0] || "/placeholder.jpg"}
+                                    src={
+                                        item.images?.[0]
+                                            ? `http://localhost:8000/storage/${item.images[0]}`
+                                            : "/placeholder.jpg"
+                                    }
                                     alt={item.name}
-                                    className="w-20 h-20 object-cover rounded"
+                                    className="w-12 h-12 object-cover rounded mr-2"
                                 />
                                 {item.quantity > 1 && (
                                     <span className="absolute -top-2 -right-2 bg-gray-400 text-white text-xs px-2 py-0.5 rounded-full">

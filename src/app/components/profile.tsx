@@ -27,6 +27,8 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState<string>("");
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
 
   const router = useRouter();
   const { setLoggedIn } = useAuth();
@@ -148,6 +150,30 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
         <div className="text-green-600 bg-green-100 p-4 rounded">{successMessage}</div>
       )}
 
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center">
+            <h2 className="text-lg font-semibold mb-2">Apakah Anda ingin logout?</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Setelah logout, Anda masih bisa login kembali.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                Ya
+              </button>
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+              >
+                Tidak
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Kiri */}
         <div className="space-y-4">
@@ -196,7 +222,7 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
                   onChange={(e) => handleChange(e, field as keyof User)}
                 />
               ) : (
-                <p className="text-black">{user[field as keyof User]}</p>
+                <p className="text-gray-500">{user[field as keyof User]}</p>
               )}
             </div>
           ))}
@@ -218,21 +244,20 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
 
       <div className="flex justify-end space-x-4 pt-4">
         {isEditing ? (
-          <button className="text-green-600 hover:underline" onClick={handleUpdate}>
-            ✅ Simpan
+          <button className="text-gray-500 hover:underline" onClick={handleUpdate}>
+            Simpan
           </button>
         ) : (
-          <button className="text-blue-600 hover:underline" onClick={() => setIsEditing(true)}>
-            ✏️ Edit
+          <button className="text-gray-500 hover:underline" onClick={() => setIsEditing(true)}>
+            Edit
           </button>
         )}
         <button
-          className="text-red-600 hover:underline"
-          onClick={handleLogout}
+          className="text-gray-500 hover:underline"
+          onClick={() => setShowLogoutConfirm(true)}
         >
-          🚪 Logout
+          Logout
         </button>
-        <button className="text-red-600 hover:underline">🗑️ Hapus Akun</button>
       </div>
     </div>
   );

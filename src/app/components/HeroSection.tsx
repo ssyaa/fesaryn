@@ -7,7 +7,13 @@ export default function HeroSection() {
         <img 
           src="/images/beranda.jpg" 
           alt="Hero Section"
-          className="max-w-full max-h-full object-contain"
+          className="
+            w-full               // mobile: penuh
+            h-auto              // mobile: tinggi otomatis
+            max-h-[60vh]        // mobile: batasi tinggi
+            sm:max-h-full       // PC: tetap full (tidak berubah)
+            object-contain
+          "
         />
       </div>
     </section>

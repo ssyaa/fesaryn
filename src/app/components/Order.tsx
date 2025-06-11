@@ -131,9 +131,9 @@ export default function Order() {
     });
   };
 
-  if (loading) return <p>Loading orders...</p>;
+  if (loading) return <p>Memuat data pengguna...</p>;
   if (error) return <p>Error: {error}</p>;
-  if (orders.length === 0) return <p>No orders found.</p>;
+  if (orders.length === 0) return <p>Silakan melakukan pemesanan^^</p>;
 
   return (
     <div className="p-6 space-y-6">
@@ -202,7 +202,11 @@ export default function Order() {
                         className="ml-4 mt-2 p-2 border border-gray-200 rounded-md flex items-center space-x-4"
                       >
                         <img
-                          src={`/${detail.product.image[0]}`}
+                          src={
+                            detail.product.image?.[0]
+                              ? `http://localhost:8000/storage/${detail.product.image[0]}`
+                              : "/placeholder.jpg"
+                          }
                           alt={detail.product.name}
                           className="w-24 h-auto rounded"
                         />

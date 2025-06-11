@@ -35,7 +35,7 @@ const RestockedSection: React.FC = () => {
         const formatted = res.data.map((item: any) => ({
           ...item,
           image: item.image
-            ? `http://127.0.0.1:8000/storage/${item.image}`
+            ? `http://127.0.0.1:8000/api/storage/${item.image}`
             : null,
           price: item.price, // Pastikan harga berasal dari `restocked` bukan `product`
         }));
