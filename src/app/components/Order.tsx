@@ -217,7 +217,7 @@ export default function Order() {
                         <Image
                           src={
                             detail.product.image?.[0]
-                              ? `http://localhost:8000/storage/${detail.product.image[0]}`
+                              ? `http://54.253.189.135/storage/${detail.product.image[0]}`
                               : "/placeholder.jpg"
                           }
                           alt={detail.product.name}
