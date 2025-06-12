@@ -105,7 +105,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
         setIsProcessing(true);
 
         try {
-            const userRes = await axios.get("http://localhost:8000/api/user/profile", {
+            const userRes = await axios.get("http://54.253.189.135/api/user/profile", {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -119,7 +119,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
             }
 
             const orderRes = await axios.post(
-                "http://localhost:8000/api/order",
+                "http://54.253.189.135/api/order",
                 {
                     items: cartItems,
                     total: totalPrice,
@@ -136,7 +136,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
             }
 
             const snapRes = await axios.post(
-                "http://localhost:8000/api/midtrans/snap-token",
+                "http://54.253.189.135/api/midtrans/snap-token",
                 {
                     order_id: Number(orderId),
                     amount: totalPrice,
