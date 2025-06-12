@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
 
   // Image domain configuration for next/image
   images: {
-    domains: ["127.0.0.1", "localhost"], // Allow loading images from localhost or 127.0.0.1
+    domains: ["127.0.0.1", "localhost", "54.253.189.135"], // Allow loading images from localhost or 127.0.0.1
   },
 
   // Rewrites to proxy API requests to the Laravel backend
@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:8000/api/:path*", // Proxy to Laravel backend
+        destination: "http://54.253.189.135/api/:path*", // Proxy to Laravel backend
       },
     ];
   },
