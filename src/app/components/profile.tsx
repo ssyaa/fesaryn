@@ -106,7 +106,7 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
         updateData.password = newPassword;
       }
 
-      await axios.put("http://localhost:8000/api/user/profile", updateData, {
+      await axios.put("http://54.253.189.135/api/user/profile", updateData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
