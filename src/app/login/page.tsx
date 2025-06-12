@@ -20,7 +20,7 @@ export default function Login() {
         setError("");
 
         try {
-            const response = await axios.post("http://localhost:8000/api/login", {
+            const response = await axios.post("http://54.253.189.135/api/login", {
                 email,
                 password,
             });
