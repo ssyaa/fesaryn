@@ -41,7 +41,7 @@ export default function Cart() {
 
     setIsLoading(true);
 
-    fetch('http://localhost:8000/api/cart', {
+    fetch('http://54.253.189.135/api/cart', {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
