@@ -8,7 +8,7 @@ import Image from "next/image";
 interface Product {
   id: number;
   name: string;
-  price: string | number; // Harga produk
+  price: string | number;
   stock: number;
 }
 
@@ -18,7 +18,7 @@ interface RestockItem {
   quantity: number;
   image: string | null;
   restocked_at: string;
-  price: string | number; // Harga dari restocked (bukan product price)
+  price: string | number;
   product: Product;
 }
 
@@ -30,14 +30,13 @@ const RestockedSection: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:8000/api/restockeds")
+      .get<RestockItem[]>("http://127.0.0.1:8000/api/restockeds")
       .then((res) => {
-        const formatted = res.data.map((item: any) => ({
+        const formatted = res.data.map((item) => ({
           ...item,
           image: item.image
             ? `http://127.0.0.1:8000/api/storage/${item.image}`
             : null,
-          price: item.price, // Pastikan harga berasal dari `restocked` bukan `product`
         }));
         setRestocks(formatted);
       })
@@ -83,7 +82,6 @@ const RestockedSection: React.FC = () => {
                 {restock.product.name}
               </p>
               <p className="text-sm text-gray-600">
-                {/* Menggunakan harga dari restocked.price */}
                 Rp {Number(restock.price).toLocaleString("id-ID")}
               </p>
               <p className="text-sm italic text-gray-500">

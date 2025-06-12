@@ -2,19 +2,31 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useEffect, useState, useCallback } from "react";
-import { Product } from "../lib/types/Product";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/Authcontext";
 import axios from "axios";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 interface CheckoutPanelProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
+interface CartItem {
+    id: number;
+    name: string;
+    price: number;
+    images: string[];
+    quantity: number;
+}
+
+interface MidtransResult {
+    [key: string]: unknown;
+}
+
 const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
-    const [cartItems, setCartItems] = useState<Product[]>([]);
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [loginMessage, setLoginMessage] = useState("");
     const { isAuthenticated, token } = useAuth();
     const router = useRouter();
@@ -34,19 +46,28 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
                     "Content-Type": "application/json",
                 },
             });
-            if (!res.ok) throw new Error("Gagal mengambil data cart");
-            const data = await res.json();
 
-            const mappedCart = data.cart.map((item: any) => ({
+            if (!res.ok) throw new Error("Gagal mengambil data cart");
+
+            const data = await res.json();
+            const mappedCart: CartItem[] = data.cart.map((item: {
+                product: {
+                    id: number;
+                    name: string;
+                    price: number;
+                    image: string;
+                };
+                quantity: number;
+            }) => ({
                 id: item.product.id,
                 name: item.product.name,
                 price: item.product.price,
-                images: item.product.image,
+                images: [item.product.image],
                 quantity: item.quantity,
             }));
             setCartItems(mappedCart);
-        } catch (err) {
-            console.error("Fetch cart error:", err);
+        } catch (error) {
+            console.error("Fetch cart error:", error);
             setCartItems([]);
         }
     }, [token]);
@@ -75,7 +96,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
             return;
         }
 
-        if (!isSnapReady || !window.snap) {
+        if (!isSnapReady || typeof window.snap === "undefined") {
             toast.error("Midtrans belum siap. Silakan tunggu beberapa detik dan coba lagi.");
             return;
         }
@@ -131,18 +152,21 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
             const snapToken = snapRes.data.snap_token;
 
             window.snap.pay(snapToken, {
-                onSuccess: (result: any) => {
+                onSuccess: (result) => {
+                    const data = result as MidtransResult;
                     toast.success("Pembayaran berhasil!");
-                    console.log("Success:", result);
-                    handleCheckout(); // checkout setelah pembayaran sukses
+                    console.log("Success:", data);
+                    handleCheckout();
                 },
-                onPending: (result: any) => {
+                onPending: (result) => {
+                    const data = result as MidtransResult;
                     toast("Pembayaran sedang diproses...", { icon: "⏳" });
-                    console.log("Pending:", result);
+                    console.log("Pending:", data);
                 },
-                onError: (result: any) => {
+                onError: (result) => {
+                    const data = result as MidtransResult;
                     toast.error("Pembayaran gagal!");
-                    console.error("Error:", result);
+                    console.error("Error:", data);
                 },
                 onClose: () => {
                     toast("Kamu menutup pembayaran.", { icon: "❌" });
@@ -175,7 +199,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
             toast.success("Checkout berhasil!");
             setCartItems([]);
             router.push(`/payment/${res.data.order_id}`);
-        } catch (err) {
+        } catch {
             toast.error("Gagal checkout");
         }
     };
@@ -213,15 +237,17 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
                 {cartItems.length > 0 ? (
                     cartItems.map((item, index) => (
                         <div key={index} className="flex items-center gap-4 mb-4">
-                            <div className="relative">
-                                <img
+                            <div className="relative w-12 h-12">
+                                <Image
                                     src={
                                         item.images?.[0]
                                             ? `http://localhost:8000/storage/${item.images[0]}`
                                             : "/placeholder.jpg"
                                     }
                                     alt={item.name}
-                                    className="w-12 h-12 object-cover rounded mr-2"
+                                    layout="fill"
+                                    objectFit="cover"
+                                    className="rounded"
                                 />
                                 {item.quantity > 1 && (
                                     <span className="absolute -top-2 -right-2 bg-gray-400 text-white text-xs px-2 py-0.5 rounded-full">

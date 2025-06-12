@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from "next/image";
+import Link from 'next/link';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
@@ -34,10 +36,10 @@ export default function RegisterPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-10 bg-white">
-      <a href="/" className="self-start mb-4 text-sm text-gray-500">&lt; BACK</a>
+      <Link href="/" className="self-start mb-4 text-sm text-gray-500">&lt; BACK</Link>
 
       <div className="mb-8">
-        <img src="/sarynlogo.png" alt="Logo" className="h-12" />
+        <Image src="/sarynlogo.png" alt="Logo" className="h-12" />
       </div>
 
       <h1 className="text-2xl font-semibold mb-6">Detail Pribadi</h1>

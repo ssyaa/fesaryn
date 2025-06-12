@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
 interface User {
@@ -14,18 +14,16 @@ interface User {
     subcity?: string;
     postalcode?: string;
     password?: string;
-  // Sesuaikan field lain jika ada
 }
 
 interface CartItem {
-    id: number; // id cart item di backend
+    id: number;
     product_id: number;
     quantity: number;
     product: {
         id: number;
         name: string;
         price: number;
-        // bisa ditambah properti produk lainnya
     };
 }
 
@@ -69,75 +67,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loggedIn, setLoggedIn] = useState<boolean>(false);
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-    // Setup axios default headers kalau token ada
     useEffect(() => {
         if (token) {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+            axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         } else {
-        delete axios.defaults.headers.common["Authorization"];
+            delete axios.defaults.headers.common["Authorization"];
         }
     }, [token]);
 
-    // Fetch cart items dari backend
-    const fetchCart = async () => {
+    const fetchCart = useCallback(async () => {
         if (!token) return;
         try {
-        const response = await axios.get("http://localhost:8000/api/cart");
-        setCartItems(response.data.cartItems || []);
+            const res = await axios.get("http://localhost:8000/api/cart");
+            setCartItems(res.data.cartItems || []);
         } catch (error) {
-        console.error("Gagal fetch cart:", error);
-        setCartItems([]);
+            console.error("Gagal fetch cart:", error);
+            setCartItems([]);
         }
-    };
+    }, [token]);
 
-    // Inisialisasi auth dan cart saat mount
     useEffect(() => {
         const initializeAuth = async () => {
-        setIsLoading(true);
-        const storedToken = localStorage.getItem("token");
-        if (!storedToken) {
-            setUser(null);
-            setToken(null);
-            setLoggedIn(false);
-            setCartItems([]);
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-            const response = await axios.get("http://localhost:8000/api/user/profile", {
-            headers: {
-                Authorization: `Bearer ${storedToken}`,
-            },
-            });
-
-            const fetchedUser: User = response.data.user || response.data;
-
-            if (!fetchedUser || Object.keys(fetchedUser).length === 0) {
-            setUser(null);
-            setToken(null);
-            setLoggedIn(false);
-            localStorage.removeItem("token");
-            setCartItems([]);
-            } else {
-            setUser(fetchedUser);
-            setToken(storedToken);
-            setLoggedIn(true);
-            await fetchCart();
+            setIsLoading(true);
+            const storedToken = localStorage.getItem("token");
+            if (!storedToken) {
+                setUser(null);
+                setToken(null);
+                setLoggedIn(false);
+                setCartItems([]);
+                setIsLoading(false);
+                return;
             }
-        } catch (error) {
-            setUser(null);
-            setToken(null);
-            setLoggedIn(false);
-            localStorage.removeItem("token");
-            setCartItems([]);
-        } finally {
-            setIsLoading(false);
-        }
+
+            try {
+                const res = await axios.get("http://localhost:8000/api/user/profile", {
+                    headers: {
+                        Authorization: `Bearer ${storedToken}`,
+                    },
+                });
+
+                const fetchedUser: User = res.data.user || res.data;
+
+                if (!fetchedUser || Object.keys(fetchedUser).length === 0) {
+                    setUser(null);
+                    setToken(null);
+                    setLoggedIn(false);
+                    localStorage.removeItem("token");
+                    setCartItems([]);
+                } else {
+                    setUser(fetchedUser);
+                    setToken(storedToken);
+                    setLoggedIn(true);
+                    await fetchCart();
+                }
+            } catch {
+                setUser(null);
+                setToken(null);
+                setLoggedIn(false);
+                localStorage.removeItem("token");
+                setCartItems([]);
+            } finally {
+                setIsLoading(false);
+            }
         };
 
         initializeAuth();
-    }, []);
+    }, [fetchCart]);
 
     const login = async (newToken: string) => {
         localStorage.setItem("token", newToken);
@@ -145,33 +140,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
 
         try {
-        const response = await axios.get("http://localhost:8000/api/user/profile", {
-            headers: {
-            Authorization: `Bearer ${newToken}`,
-            },
-        });
+            const res = await axios.get("http://localhost:8000/api/user/profile", {
+                headers: {
+                    Authorization: `Bearer ${newToken}`,
+                },
+            });
 
-        const fetchedUser: User = response.data.user || response.data;
+            const fetchedUser: User = res.data.user || res.data;
 
-        if (!fetchedUser || Object.keys(fetchedUser).length === 0) {
+            if (!fetchedUser || Object.keys(fetchedUser).length === 0) {
+                setUser(null);
+                setToken(null);
+                setLoggedIn(false);
+                localStorage.removeItem("token");
+                setCartItems([]);
+            } else {
+                setUser(fetchedUser);
+                setLoggedIn(true);
+                await fetchCart();
+            }
+        } catch {
             setUser(null);
             setToken(null);
             setLoggedIn(false);
             localStorage.removeItem("token");
             setCartItems([]);
-        } else {
-            setUser(fetchedUser);
-            setLoggedIn(true);
-            await fetchCart();
-        }
-        } catch (error) {
-        setUser(null);
-        setToken(null);
-        setLoggedIn(false);
-        localStorage.removeItem("token");
-        setCartItems([]);
         } finally {
-        setIsLoading(false);
+            setIsLoading(false);
         }
     };
 
@@ -183,81 +178,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setCartItems([]);
     };
 
-    // Tambah item ke cart via API
     const addToCart = async (productId: number, quantity: number = 1) => {
         if (!token) return;
         try {
-        const response = await axios.post("http://localhost:8000/api/cart", {
-            product_id: productId,
-            quantity,
-        });
-        // Update cart items setelah tambah
-        await fetchCart();
+            await axios.post("http://localhost:8000/api/cart", {
+                product_id: productId,
+                quantity,
+            });
+            await fetchCart();
         } catch (error) {
-        console.error("Gagal tambah cart:", error);
+            console.error("Gagal tambah cart:", error);
         }
     };
 
-    // Update quantity item cart
     const updateCartItem = async (cartItemId: number, quantity: number) => {
         if (!token) return;
         try {
-        await axios.put(`http://localhost:8000/api/cart/${cartItemId}`, {
-            quantity,
-        });
-        await fetchCart();
+            await axios.put(`http://localhost:8000/api/cart/${cartItemId}`, {
+                quantity,
+            });
+            await fetchCart();
         } catch (error) {
-        console.error("Gagal update cart item:", error);
+            console.error("Gagal update cart item:", error);
         }
     };
 
-    // Hapus item dari cart
     const removeCartItem = async (cartItemId: number) => {
         if (!token) return;
         try {
-        await axios.delete(`http://localhost:8000/api/cart/${cartItemId}`);
-        await fetchCart();
+            await axios.delete(`http://localhost:8000/api/cart/${cartItemId}`);
+            await fetchCart();
         } catch (error) {
-        console.error("Gagal hapus cart item:", error);
+            console.error("Gagal hapus cart item:", error);
         }
     };
 
-    // Kosongkan cart, misal setelah checkout atau logout
     const clearCart = async () => {
         if (!token) return;
         try {
-        await axios.post("http://localhost:8000/api/cart/clear");
-        setCartItems([]);
+            await axios.post("http://localhost:8000/api/cart/clear");
+            setCartItems([]);
         } catch (error) {
-        console.error("Gagal clear cart:", error);
+            console.error("Gagal clear cart:", error);
         }
     };
 
     const refreshToken = async () => {
-        // Kalau nanti mau support refresh token, isi di sini
         console.log("Refreshing token...");
     };
 
     return (
         <AuthContext.Provider
-        value={{
-            user,
-            token,
-            isAuthenticated: loggedIn,
-            isLoading,
-            cartItems,
-            login,
-            logout,
-            refreshToken,
-            setLoggedIn,
-            fetchCart,
-            addToCart,
-            updateCartItem,
-            removeCartItem,
-            clearCart,
-        }}
+            value={{
+                user,
+                token,
+                isAuthenticated: loggedIn,
+                isLoading,
+                cartItems,
+                login,
+                logout,
+                refreshToken,
+                setLoggedIn,
+                fetchCart,
+                addToCart,
+                updateCartItem,
+                removeCartItem,
+                clearCart,
+            }}
         >
-        {children}
+            {children}
         </AuthContext.Provider>
     );
 }

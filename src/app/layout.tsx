@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import LoadingOverlay from "./components/loadingOverlay";
 import { AuthProvider } from "../context/Authcontext"; // <- Import contextnya
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,9 +26,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Sarynthelabel</title>
-        <script
+        <Script
           src="https://app.sandbox.midtrans.com/snap/snap.js"
           data-client-key="SB-Mid-client-elkGxR3Ncj-adVXz"
+          strategy="afterInteractive"
         />
       </head>
       <body className="flex flex-col min-h-screen bg-white text-black" suppressHydrationWarning>

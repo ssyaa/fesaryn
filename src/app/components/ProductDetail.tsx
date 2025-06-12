@@ -4,22 +4,33 @@ import { FC, useState, useContext } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "./Navbar";
-import { Product } from "../lib/types/Product";
-import { AuthContext } from "../../context/Authcontext"; // ⬅️ pastikan path ini sesuai
+import { AuthContext } from "../../context/Authcontext"; // ⬅️ pastikan path ini benar
+
+// ⬇️ Tipe Product didefinisikan langsung di sini, bukan dari lib
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  stock: number;
+  description: string;
+  images: string[]; // Sudah diolah jadi array dari Laravel
+  category_id: number;
+  details?: string[]; // <- Disamakan
+}
 
 interface ProductDetailProps {
   product: Product | null;
 }
 
 const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
-    const [selectedImage, setSelectedImage] = useState(0);
-    const [buttonText, setButtonText] = useState("Order");
-    const [isLoading, setIsLoading] = useState(false);
-    const { user, token } = useContext(AuthContext); // ⬅️ ambil User dari context
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [buttonText, setButtonText] = useState("Order");
+  const [isLoading, setIsLoading] = useState(false);
+  const { user, token } = useContext(AuthContext); // Ambil user dan token dari context
 
-    if (!product) return <div>Loading...</div>;
+  if (!product) return <div>Loading...</div>;
 
-    const handleOrder = async () => {
+  const handleOrder = async () => {
     if (!user) {
       alert("Silakan login terlebih dahulu untuk memesan.");
       return;
@@ -38,7 +49,7 @@ const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          product_id: product.id,  // <-- ini penting
+          product_id: product.id,
           quantity: 1,
         }),
       });
@@ -56,19 +67,15 @@ const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
         setIsLoading(false);
       }, 2000);
     }
-};
-
+  };
 
   return (
     <>
       <Navbar />
       <div className="flex flex-col md:flex-row min-h-screen bg-white px-6 md:px-16 pt-22 text-black">
-        {/* Back and Image section */}
+        {/* Gambar produk dan thumbnail */}
         <div className="flex flex-col md:w-1/2">
-          <Link
-            href="/home"
-            className="text-sm text-gray-500 mb-4 hover:underline w-fit"
-          >
+          <Link href="/home" className="text-sm text-gray-500 mb-4 hover:underline w-fit">
             &lt; BACK
           </Link>
 
@@ -83,31 +90,24 @@ const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
                 }
               `}</style>
 
-              {Array.isArray(product.images) &&
-                product.images.map((img, idx) => (
-                  <Image
-                    key={idx}
-                    src={img}
-                    alt={`Thumbnail ${idx}`}
-                    width={100}
-                    height={120}
-                    className={`cursor-pointer border ${
-                      selectedImage === idx
-                        ? "border-black"
-                        : "border-gray-300"
-                    }`}
-                    onClick={() => setSelectedImage(idx)}
-                  />
-                ))}
+              {product.images.map((img, idx) => (
+                <Image
+                  key={idx}
+                  src={img}
+                  alt={`Thumbnail ${idx}`}
+                  width={100}
+                  height={120}
+                  className={`cursor-pointer border ${
+                    selectedImage === idx ? "border-black" : "border-gray-300"
+                  }`}
+                  onClick={() => setSelectedImage(idx)}
+                />
+              ))}
             </div>
 
             <div className="flex justify-center items-center w-full">
               <Image
-                src={
-                  Array.isArray(product.images)
-                    ? product.images[selectedImage]
-                    : ""
-                }
+                src={product.images[selectedImage]}
                 alt="Main product"
                 width={600}
                 height={800}
@@ -117,6 +117,7 @@ const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
           </div>
         </div>
 
+        {/* Detail produk */}
         <div className="md:w-1/2 px-6 md:px-10 mt-12 flex flex-col justify-start">
           <h1 className="text-4xl font-bold mb-1">{product.name}</h1>
           <p className="text-base text-gray-500 mb-2">
@@ -134,10 +135,9 @@ const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
           </p>
 
           <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1 mb-10">
-            {Array.isArray(product.details) &&
-              product.details.map((detail, idx) => (
-                <li key={idx}>{detail}</li>
-              ))}
+            {product.details?.map((detail, idx) => (
+              <li key={idx}>{detail}</li>
+            ))}
           </ul>
 
           <div className="flex gap-2">

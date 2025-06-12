@@ -66,7 +66,7 @@ export default function RegisterAddressPage() {
             const data = await res.json()
             setError(data.message || 'Terjadi kesalahan saat registrasi.')
         }
-        } catch (err) {
+        } catch {
         setError('Gagal menghubungi server.')
         }
     }

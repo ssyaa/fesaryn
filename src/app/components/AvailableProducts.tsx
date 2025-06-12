@@ -3,10 +3,18 @@
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import Pagination from "./Pagination";
-import { Product } from "../lib/types/Product";
 import Image from "next/image";
 
 const PRODUCTS_PER_PAGE = 8;
+
+type Product = {
+  id: number;
+  name: string;
+  price: number;
+  stock: number;
+  image: string[] | string;
+  images: string[];
+};
 
 export default function AvailableProducts() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -22,18 +30,14 @@ export default function AvailableProducts() {
         const data = await response.json();
 
         if (Array.isArray(data?.data)) {
-          const formatted = data.data.map((product: any) => {
-            // console.log("RAW IMAGE VALUE:", product.image);
-            let rawImages = [];
+          const formatted = data.data.map((product: Product) => {
+            let rawImages: string[] = [];
 
             if (typeof product.image === "string") {
               try {
                 rawImages = JSON.parse(product.image);
-              } catch (e) {
-                console.error(
-                  "Image is not a valid JSON array string:",
-                  product.image
-                );
+              } catch {
+                console.error("Image is not a valid JSON array string:", product.image);
               }
             } else if (Array.isArray(product.image)) {
               rawImages = product.image;
@@ -50,20 +54,6 @@ export default function AvailableProducts() {
               images,
             };
           });
-
-          // const formatted = data.data.map((product: any) => {
-          //   const imagePath = product.images?.[0] || product.image || null;
-          //   const imageUrl = imagePath
-          //     ? imagePath.startsWith("http")
-          //       ? imagePath
-          //       : `http://127.0.0.1:8000/storage/${imagePath}`
-          //     : null;
-
-          //   return {
-          //     ...product,
-          //     imageUrl,
-          //   };
-          // });
 
           setProducts(formatted);
         } else {
@@ -124,21 +114,6 @@ export default function AvailableProducts() {
                         No image
                       </div>
                     )}
-
-                    {/* {product.imageUrl ? (
-                      <Image
-                        src={product.imageUrl}
-                        alt={product.name}
-                        fill
-                        className="object-cover"
-                        unoptimized // only use this in development
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-sm text-gray-400">
-                        No image
-                      </div>
-                    )} */}
-
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                       <p className="text-white text-sm font-semibold">
                         Stock: {product.stock}

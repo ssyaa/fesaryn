@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../context/Authcontext"; // pastikan path ini sesuai
+import { useAuth } from "../../context/Authcontext";
 
 interface User {
   email: string;
@@ -28,7 +28,6 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState<string>("");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-
 
   const router = useRouter();
   const { setLoggedIn } = useAuth();
@@ -59,14 +58,18 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
         }
 
         setUser(fetchedUser);
-      } catch (err: any) {
-        if (err.response?.status === 401) {
-          setError("Maaf, token expired.");
-          localStorage.removeItem("token");
-          setLoggedIn(false);
-          router.push("/login");
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 401) {
+            setError("Maaf, token expired.");
+            localStorage.removeItem("token");
+            setLoggedIn(false);
+            router.push("/login");
+          } else {
+            setError("Maaf, data tidak berhasil diambil.");
+          }
         } else {
-          setError("Maaf, data tidak berhasil diambil.");
+          setError("Terjadi kesalahan yang tidak diketahui.");
         }
       }
     };
@@ -116,8 +119,12 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
       if (onUserUpdate) {
         onUserUpdate(updateData);
       }
-    } catch (err: any) {
-      setError("Gagal memperbarui data. Periksa kembali data yang diisi.");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        setError("Gagal memperbarui data. Periksa kembali data yang diisi.");
+      } else {
+        setError("Terjadi kesalahan saat memperbarui data.");
+      }
     }
   };
 
@@ -145,7 +152,6 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto mt-6 bg-white shadow-md rounded-md p-10">
-      {error && <div className="text-red-600 bg-red-100 p-4 rounded">{error}</div>}
       {successMessage && (
         <div className="text-green-600 bg-green-100 p-4 rounded">{successMessage}</div>
       )}
@@ -174,15 +180,10 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
           </div>
         </div>
       )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Kiri */}
         <div className="space-y-4">
-          {[
-            { label: "Email", field: "email" },
-            { label: "Kata Sandi", field: "password" },
-            { label: "Nama", field: "name" },
-            { label: "Nomor Telepon", field: "phone" },
-          ].map(({ label, field }) => (
+          {[{ label: "Email", field: "email" }, { label: "Kata Sandi", field: "password" }, { label: "Nama", field: "name" }, { label: "Nomor Telepon", field: "phone" }].map(({ label, field }) => (
             <div key={field}>
               <span className="text-gray-400">{label}</span>
               {isEditing ? (
@@ -194,24 +195,15 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
                 />
               ) : (
                 <p className="text-gray-500">
-                  {field === "password"
-                    ? "•".repeat(8)
-                    : user[field as keyof User]}
+                  {field === "password" ? "•".repeat(8) : user[field as keyof User]}
                 </p>
               )}
             </div>
           ))}
         </div>
 
-        {/* Kanan */}
         <div className="space-y-4">
-          {[
-            { label: "Alamat", field: "address" },
-            { label: "Provinsi", field: "province" },
-            { label: "Kota/Kabupaten", field: "city" },
-            { label: "Kecamatan", field: "subcity" },
-            { label: "Kode Pos", field: "postalcode" },
-          ].map(({ label, field }) => (
+          {[{ label: "Alamat", field: "address" }, { label: "Provinsi", field: "province" }, { label: "Kota/Kabupaten", field: "city" }, { label: "Kecamatan", field: "subcity" }, { label: "Kode Pos", field: "postalcode" }].map(({ label, field }) => (
             <div key={field}>
               <span className="text-gray-400">{label}</span>
               {isEditing ? (

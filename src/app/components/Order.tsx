@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/Authcontext";
+import Image from "next/image";
 
 interface Product {
   id: number;
@@ -50,6 +51,14 @@ interface PaymentInfo {
   va_numbers?: { bank: string; va_number: string }[];
 }
 
+interface AxiosErrorType {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
 export default function Order() {
   const { token } = useAuth();
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -68,7 +77,7 @@ export default function Order() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setPayments((prev) => ({ ...prev, [orderId]: res.data }));
-      } catch (err) {
+      } catch (err: unknown) {
         console.error(`Error fetching payment info for order ${orderId}`, err);
       }
     };
@@ -84,8 +93,12 @@ export default function Order() {
         response.data.forEach((order) => {
           fetchPaymentInfo(order.id);
         });
-      } catch (err: any) {
-        setError(err.message || "Error fetching orders");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Error fetching orders");
+        }
       } finally {
         setLoading(false);
       }
@@ -112,8 +125,9 @@ export default function Order() {
         newSet.delete(orderId);
         return newSet;
       });
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Gagal membatalkan order");
+    } catch (err: unknown) {
+      const axiosErr = err as AxiosErrorType;
+      alert(axiosErr.response?.data?.message || "Gagal membatalkan order");
     } finally {
       setCancelLoading(null);
     }
@@ -183,8 +197,7 @@ export default function Order() {
               </p>
             </div>
 
-
-            {/* Dropdown Detail with simple slide down/up animation */}
+            {/* Dropdown Detail */}
             <div
               className={`overflow-hidden transition-[max-height] duration-300 ease-in-out px-4`}
               style={{
@@ -201,7 +214,7 @@ export default function Order() {
                         key={detail.id}
                         className="ml-4 mt-2 p-2 border border-gray-200 rounded-md flex items-center space-x-4"
                       >
-                        <img
+                        <Image
                           src={
                             detail.product.image?.[0]
                               ? `http://localhost:8000/storage/${detail.product.image[0]}`
@@ -209,6 +222,8 @@ export default function Order() {
                           }
                           alt={detail.product.name}
                           className="w-24 h-auto rounded"
+                          width={96}
+                          height={96}
                         />
                         <div>
                           <p>Product: {detail.product.name}</p>

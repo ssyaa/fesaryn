@@ -1,40 +1,47 @@
-import { Product } from "../lib/types/Product";
+// CartHelpers.ts (atau nama lainnya)
 
-// Fungsi ambil cart dari localStorage
-export const getCart = (): Product[] => {
+// Type sementara untuk produk di cart
+export interface CartProduct {
+  id: number;
+  name: string;
+  price: number;
+  stock: number;
+  image: string[]; // atau string, tergantung dari backend
+  quantity: number;
+}
+
+// Ambil cart dari localStorage
+export const getCart = (): CartProduct[] => {
   return JSON.parse(localStorage.getItem("cart") || "[]");
 };
 
-// Fungsi simpan cart ke localStorage
-export const saveCart = (cart: Product[]): void => {
+// Simpan cart ke localStorage
+export const saveCart = (cart: CartProduct[]): void => {
   localStorage.setItem("cart", JSON.stringify(cart));
 };
 
-// Fungsi menambahkan produk ke cart
-export const addToCart = (product: Product): void => {
-  const cart: Product[] = getCart();
-  const existingProductIndex = cart.findIndex((item) => item.id === product.id);
+// Tambahkan produk ke cart
+export const addToCart = (product: Omit<CartProduct, "quantity">): void => {
+  const cart: CartProduct[] = getCart();
+  const existingIndex = cart.findIndex((item) => item.id === product.id);
 
-  if (existingProductIndex !== -1) {
-    // Jika produk sudah ada, tambahkan quantity-nya
-    cart[existingProductIndex].quantity += 1;
+  if (existingIndex !== -1) {
+    cart[existingIndex].quantity += 1;
   } else {
-    // Jika belum ada, set quantity = 1, lalu tambahkan
-    const productWithQuantity = { ...product, quantity: 1 };
-    cart.push(productWithQuantity);
+    cart.push({ ...product, quantity: 1 });
   }
 
   saveCart(cart);
 };
 
-// Fungsi hapus item dari cart berdasarkan index
+// Hapus satu item berdasarkan index
 export const removeFromCart = (index: number): void => {
   const cart = getCart();
   cart.splice(index, 1);
   saveCart(cart);
 };
 
-// Fungsi hapus seluruh cart
+// Hapus semua cart
 export const clearCart = (): void => {
   localStorage.removeItem("cart");
 };
