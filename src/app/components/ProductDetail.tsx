@@ -42,7 +42,7 @@ const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
     setButtonText("Add to Cart...");
 
     try {
-      const response = await fetch("http://localhost:8000/api/cart", {
+      const response = await fetch("http://54.253.189.135/api/cart", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
