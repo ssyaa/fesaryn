@@ -44,7 +44,7 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
 
     const fetchUserData = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/api/user/profile", {
+        const res = await axios.get("http://54.253.189.135/api/user/profile", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
