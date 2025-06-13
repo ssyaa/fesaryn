@@ -17,7 +17,7 @@ const Categories = () => {
   useEffect(() => {
     // Call the API to fetch the categories
     axios
-      .get("http://127.0.0.1:8000/api/categories")
+      .get("http://54.253.189.135/api/categories")
       .then((response) => {
         setCategories(response.data);
         setLoading(false);
