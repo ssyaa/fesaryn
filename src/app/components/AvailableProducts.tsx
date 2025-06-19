@@ -46,7 +46,7 @@ export default function AvailableProducts() {
             const images = rawImages.map((imgPath: string) =>
               imgPath.startsWith("http")
                 ? imgPath
-                : `https://www.sarynthelabel.my.id/storage/${imgPath}`
+                : `https://admin.sarynthelabel.my.id/storage/${imgPath}`
             );
 
             return {
