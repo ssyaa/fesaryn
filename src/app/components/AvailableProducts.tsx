@@ -24,7 +24,7 @@ export default function AvailableProducts() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/products");
+        const response = await fetch("https://www.sarynthelabel.my.id/api/products");
         if (!response.ok) throw new Error("Failed to fetch products");
 
         const data = await response.json();
@@ -46,7 +46,7 @@ export default function AvailableProducts() {
             const images = rawImages.map((imgPath: string) =>
               imgPath.startsWith("http")
                 ? imgPath
-                : `http://127.0.0.1:8000/storage/${imgPath}`
+                : `https://www.sarynthelabel.my.id/storage/${imgPath}`
             );
 
             return {
