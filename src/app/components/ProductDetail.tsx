@@ -42,7 +42,7 @@ const ProductDetail: FC<ProductDetailProps> = ({ product }) => {
     setButtonText("Add to Cart...");
 
     try {
-      const response = await fetch("http://localhost:8000/api/cart", {
+      const response = await fetch("https://admin.sarynthelabel.my.id/api/cart", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

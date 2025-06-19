@@ -41,7 +41,7 @@ export default function Cart() {
 
     setIsLoading(true);
 
-    fetch('http://localhost:8000/api/cart', {
+    fetch('https://admin.sarynthelabel.my.id/api/cart', {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ export default function Cart() {
                     <Image
                       src={
                         item.images?.[0]
-                          ? `http://localhost:8000/storage/${item.images[0]}`
+                          ? `https://admin.sarynthelabel.my.id/storage/${item.images[0]}`
                           : '/placeholder.jpg'
                       }
                       alt={item.name}
@@ -162,7 +162,7 @@ export default function Cart() {
                     <Image
                       src={
                         item.images?.[0]
-                          ? `http://localhost:8000/storage/${item.images[0]}`
+                          ? `https://admin.sarynthelabel.my.id/storage/${item.images[0]}`
                           : '/placeholder.jpg'
                       }
                       alt={item.name}

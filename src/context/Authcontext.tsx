@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const fetchCart = useCallback(async () => {
         if (!token) return;
         try {
-            const res = await axios.get("http://localhost:8000/api/cart");
+            const res = await axios.get("https://admin.sarynthelabel.my.id/api/cart");
             setCartItems(res.data.cartItems || []);
         } catch (error) {
             console.error("Gagal fetch cart:", error);
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
 
             try {
-                const res = await axios.get("http://localhost:8000/api/user/profile", {
+                const res = await axios.get("https://admin.sarynthelabel.my.id/api/user/profile", {
                     headers: {
                         Authorization: `Bearer ${storedToken}`,
                     },
@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
 
         try {
-            const res = await axios.get("http://localhost:8000/api/user/profile", {
+            const res = await axios.get("https://admin.sarynthelabel.my.id/api/user/profile", {
                 headers: {
                     Authorization: `Bearer ${newToken}`,
                 },
@@ -181,7 +181,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const addToCart = async (productId: number, quantity: number = 1) => {
         if (!token) return;
         try {
-            await axios.post("http://localhost:8000/api/cart", {
+            await axios.post("https://admin.sarynthelabel.my.id/api/cart", {
                 product_id: productId,
                 quantity,
             });
@@ -194,7 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const updateCartItem = async (cartItemId: number, quantity: number) => {
         if (!token) return;
         try {
-            await axios.put(`http://localhost:8000/api/cart/${cartItemId}`, {
+            await axios.put(`https://admin.sarynthelabel.my.id/api/cart/${cartItemId}`, {
                 quantity,
             });
             await fetchCart();
@@ -206,7 +206,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const removeCartItem = async (cartItemId: number) => {
         if (!token) return;
         try {
-            await axios.delete(`http://localhost:8000/api/cart/${cartItemId}`);
+            await axios.delete(`https://admin.sarynthelabel.my.id/api/cart/${cartItemId}`);
             await fetchCart();
         } catch (error) {
             console.error("Gagal hapus cart item:", error);
@@ -216,7 +216,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const clearCart = async () => {
         if (!token) return;
         try {
-            await axios.post("http://localhost:8000/api/cart/clear");
+            await axios.post("https://admin.sarynthelabel.my.id/api/cart/clear");
             setCartItems([]);
         } catch (error) {
             console.error("Gagal clear cart:", error);

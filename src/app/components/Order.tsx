@@ -217,7 +217,7 @@ export default function Order() {
                         <Image
                           src={
                             detail.product.image?.[0]
-                              ? `http://localhost:8000/storage/${detail.product.image[0]}`
+                              ? `https://admin.sarynthelabel.my.id/storage/${detail.product.image[0]}`
                               : "/placeholder.jpg"
                           }
                           alt={detail.product.name}

@@ -27,7 +27,7 @@ const ProductPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/products/${productId}`);
+        const res = await fetch(`https://admin.sarynthelabel.my.id/api/products/${productId}`);
         if (!res.ok) throw new Error("Failed to fetch product");
         const data = await res.json();
 
@@ -38,7 +38,7 @@ const ProductPage = () => {
           : [];
 
         const images = rawImages.map((img: string) =>
-          img.startsWith("http") ? img : `http://localhost:8000/storage/${img}`
+          img.startsWith("http") ? img : `https://admin.sarynthelabel.my.id/storage/${img}`
         );
 
         const formattedProduct: Product = {
@@ -50,7 +50,7 @@ const ProductPage = () => {
 
         setProduct(formattedProduct);
 
-        const resAll = await fetch(`http://localhost:8000/api/products`);
+        const resAll = await fetch(`https://admin.sarynthelabel.my.id/api/products`);
         const all = await resAll.json();
         const list = all?.data || [];
 
@@ -62,7 +62,7 @@ const ProductPage = () => {
           : [];
 
         const imgs = rawImgs.map((img: string) =>
-          img.startsWith("http") ? img : `http://localhost:8000/storage/${img}`
+          img.startsWith("http") ? img : `https://admin.sarynthelabel.my.id/storage/${img}`
         );
 
         return {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 // Ganti URL ini dengan URL backend Laravel kamu
-const BASE_URL = "http://localhost:8000/api/products";
+const BASE_URL = "https://admin.sarynthelabel.my.id/api/products";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);

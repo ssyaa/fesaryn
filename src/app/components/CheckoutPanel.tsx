@@ -40,7 +40,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
 
     const fetchCart = useCallback(async () => {
         try {
-            const res = await fetch("http://localhost:8000/api/cart", {
+            const res = await fetch("https://admin.sarynthelabel.my.id/api/cart", {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
@@ -105,7 +105,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
         setIsProcessing(true);
 
         try {
-            const userRes = await axios.get("http://localhost:8000/api/user/profile", {
+            const userRes = await axios.get("https://admin.sarynthelabel.my.id/api/user/profile", {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -119,7 +119,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
             }
 
             const orderRes = await axios.post(
-                "http://localhost:8000/api/order",
+                "https://admin.sarynthelabel.my.id/api/order",
                 {
                     items: cartItems,
                     total: totalPrice,
@@ -136,7 +136,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
             }
 
             const snapRes = await axios.post(
-                "http://localhost:8000/api/midtrans/snap-token",
+                "https://admin.sarynthelabel.my.id/api/midtrans/snap-token",
                 {
                     order_id: Number(orderId),
                     amount: totalPrice,
@@ -188,7 +188,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
     const handleCheckout = async () => {
         try {
             const res = await axios.post(
-                "http://localhost:8000/api/cart/checkout",
+                "https://admin.sarynthelabel.my.id/api/cart/checkout",
                 {},
                 {
                     headers: {
@@ -241,7 +241,7 @@ const CheckoutPanel: React.FC<CheckoutPanelProps> = ({ isOpen, onClose }) => {
                                 <Image
                                     src={
                                         item.images?.[0]
-                                            ? `http://localhost:8000/storage/${item.images[0]}`
+                                            ? `https://admin.sarynthelabel.my.id/storage/${item.images[0]}`
                                             : "/placeholder.jpg"
                                     }
                                     alt={item.name}

@@ -16,9 +16,7 @@ const Footer: React.FC = () => {
 
         {/* Center: Navigation */}
         <nav className="flex space-x-6 text-black text-sm font-medium mb-4 md:mb-0 md:absolute md:left-1/2 md:top-1/2 md:transform md:-translate-x-1/2 md:-translate-y-1/2">
-          <Link href="/catalogue" className="hover:underline">Catalogue</Link>
           <Link href="/about" className="hover:underline">About</Link>
-          <Link href="/custom" className="hover:underline">Custom</Link>
         </nav>
 
         {/* Right: Social icons */}

@@ -30,12 +30,12 @@ const RestockedSection: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get<RestockItem[]>("http://127.0.0.1:8000/api/restockeds")
+      .get<RestockItem[]>("https://admin.sarynthelabel.my.id/api/restockeds")
       .then((res) => {
         const formatted = res.data.map((item) => ({
           ...item,
           image: item.image
-            ? `http://127.0.0.1:8000/api/storage/${item.image}`
+            ? `https://admin.sarynthelabel.my.id/api/storage/${item.image}`
             : null,
         }));
         setRestocks(formatted);

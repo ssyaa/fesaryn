@@ -44,7 +44,7 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
 
     const fetchUserData = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/api/user/profile", {
+        const res = await axios.get("https://admin.sarynthelabel.my.id/api/user/profile", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -106,7 +106,7 @@ export default function Profile({ onUserUpdate }: ProfileProps) {
         updateData.password = newPassword;
       }
 
-      await axios.put("http://localhost:8000/api/user/profile", updateData, {
+      await axios.put("https://admin.sarynthelabel.my.id/api/user/profile", updateData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
