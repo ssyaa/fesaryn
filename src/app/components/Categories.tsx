@@ -17,7 +17,7 @@ const Categories = () => {
   useEffect(() => {
     // Call the API to fetch the categories
     axios
-      .get("https://www.sarynthelabel.my.id/api/categories")
+      .get("https://admin.sarynthelabel.my.id/api/categories")
       .then((response) => {
         setCategories(response.data);
         setLoading(false);
