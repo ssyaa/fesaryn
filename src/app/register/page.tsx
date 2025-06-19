@@ -27,7 +27,7 @@ export default function RegisterPage() {
       username,
       email,
       password,
-      password_confirmation: password, // backend biasanya butuh ini, walau controller kamu nggak eksplisit cek confirmation
+      password_confirmation: password,
     }
 
     localStorage.setItem('userRegisterData', JSON.stringify(userData))
@@ -102,11 +102,6 @@ export default function RegisterPage() {
       </form>
 
       <footer className="mt-16 text-center text-sm text-gray-500">
-        <div className="flex justify-center space-x-4 mt-4 mb-2">
-          <a href="#">Catalogue</a>
-          <a href="#">About</a>
-          <a href="#">Custom</a>
-        </div>
         <p>&copy; 2025 Sarynthelabel. All Rights Reserved.</p>
       </footer>
     </div>
