@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:8000/api/:path*", // Proxy to Laravel backend
+        destination: "https://www.sarynthelabel.my.id/api/:path*", // Proxy to Laravel backend
       },
     ];
   },
