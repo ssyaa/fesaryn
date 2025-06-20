@@ -73,7 +73,7 @@ export default function Order() {
 
     const fetchPaymentInfo = async (orderId: number) => {
       try {
-        const res = await axios.get<PaymentInfo>(`/api/payments/order/${orderId}`, {
+        const res = await axios.get<PaymentInfo>(`https://admin.sarynthelabel.my.id/api/payments/order/${orderId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setPayments((prev) => ({ ...prev, [orderId]: res.data }));
@@ -86,7 +86,7 @@ export default function Order() {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get<OrderData[]>("/api/orders", {
+        const response = await axios.get<OrderData[]>("https://admin.sarynthelabel.my.id/api/orders", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setOrders(response.data);
@@ -111,7 +111,7 @@ export default function Order() {
     if (!token) return;
     setCancelLoading(orderId);
     try {
-      await axios.delete(`/api/orders/${orderId}/cancel`, {
+      await axios.delete(`https://admin.sarynthelabel.my.id/api/orders/${orderId}/cancel`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrders((prev) => prev.filter((order) => order.id !== orderId));
